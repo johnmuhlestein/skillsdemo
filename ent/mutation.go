@@ -2454,6 +2454,8 @@ type PromptMutation struct {
 	response_type       *schema.Measure
 	additional_feedback *bool
 	clearedFields       map[string]struct{}
+	survey              *uuid.UUID
+	clearedsurvey       bool
 	done                bool
 	oldValue            func(context.Context) (*Prompt, error)
 	predicates          []predicate.Prompt
@@ -2776,6 +2778,45 @@ func (m *PromptMutation) ResetAdditionalFeedback() {
 	m.additional_feedback = nil
 }
 
+// SetSurveyID sets the "survey" edge to the Survey entity by id.
+func (m *PromptMutation) SetSurveyID(id uuid.UUID) {
+	m.survey = &id
+}
+
+// ClearSurvey clears the "survey" edge to the Survey entity.
+func (m *PromptMutation) ClearSurvey() {
+	m.clearedsurvey = true
+}
+
+// SurveyCleared reports if the "survey" edge to the Survey entity was cleared.
+func (m *PromptMutation) SurveyCleared() bool {
+	return m.clearedsurvey
+}
+
+// SurveyID returns the "survey" edge ID in the mutation.
+func (m *PromptMutation) SurveyID() (id uuid.UUID, exists bool) {
+	if m.survey != nil {
+		return *m.survey, true
+	}
+	return
+}
+
+// SurveyIDs returns the "survey" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SurveyID instead. It exists only for internal usage by the builders.
+func (m *PromptMutation) SurveyIDs() (ids []uuid.UUID) {
+	if id := m.survey; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSurvey resets all changes to the "survey" edge.
+func (m *PromptMutation) ResetSurvey() {
+	m.survey = nil
+	m.clearedsurvey = false
+}
+
 // Where appends a list predicates to the PromptMutation builder.
 func (m *PromptMutation) Where(ps ...predicate.Prompt) {
 	m.predicates = append(m.predicates, ps...)
@@ -3001,19 +3042,28 @@ func (m *PromptMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PromptMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.survey != nil {
+		edges = append(edges, prompt.EdgeSurvey)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *PromptMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case prompt.EdgeSurvey:
+		if id := m.survey; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PromptMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -3025,25 +3075,42 @@ func (m *PromptMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PromptMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedsurvey {
+		edges = append(edges, prompt.EdgeSurvey)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *PromptMutation) EdgeCleared(name string) bool {
+	switch name {
+	case prompt.EdgeSurvey:
+		return m.clearedsurvey
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *PromptMutation) ClearEdge(name string) error {
+	switch name {
+	case prompt.EdgeSurvey:
+		m.ClearSurvey()
+		return nil
+	}
 	return fmt.Errorf("unknown Prompt unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *PromptMutation) ResetEdge(name string) error {
+	switch name {
+	case prompt.EdgeSurvey:
+		m.ResetSurvey()
+		return nil
+	}
 	return fmt.Errorf("unknown Prompt edge %s", name)
 }
 

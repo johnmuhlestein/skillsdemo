@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"skillsdemo/ent/prompt"
 	"skillsdemo/ent/schema"
+	"skillsdemo/ent/survey"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -79,6 +80,25 @@ func (pc *PromptCreate) SetNillableID(u *uuid.UUID) *PromptCreate {
 		pc.SetID(*u)
 	}
 	return pc
+}
+
+// SetSurveyID sets the "survey" edge to the Survey entity by ID.
+func (pc *PromptCreate) SetSurveyID(id uuid.UUID) *PromptCreate {
+	pc.mutation.SetSurveyID(id)
+	return pc
+}
+
+// SetNillableSurveyID sets the "survey" edge to the Survey entity by ID if the given value is not nil.
+func (pc *PromptCreate) SetNillableSurveyID(id *uuid.UUID) *PromptCreate {
+	if id != nil {
+		pc = pc.SetSurveyID(*id)
+	}
+	return pc
+}
+
+// SetSurvey sets the "survey" edge to the Survey entity.
+func (pc *PromptCreate) SetSurvey(s *Survey) *PromptCreate {
+	return pc.SetSurveyID(s.ID)
 }
 
 // Mutation returns the PromptMutation object of the builder.
@@ -199,6 +219,23 @@ func (pc *PromptCreate) createSpec() (*Prompt, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.AdditionalFeedback(); ok {
 		_spec.SetField(prompt.FieldAdditionalFeedback, field.TypeBool, value)
 		_node.AdditionalFeedback = value
+	}
+	if nodes := pc.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   prompt.SurveyTable,
+			Columns: []string{prompt.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.survey_prompts = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

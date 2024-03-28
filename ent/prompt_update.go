@@ -9,10 +9,12 @@ import (
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/prompt"
 	"skillsdemo/ent/schema"
+	"skillsdemo/ent/survey"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // PromptUpdate is the builder for updating Prompt entities.
@@ -111,9 +113,34 @@ func (pu *PromptUpdate) SetNillableAdditionalFeedback(b *bool) *PromptUpdate {
 	return pu
 }
 
+// SetSurveyID sets the "survey" edge to the Survey entity by ID.
+func (pu *PromptUpdate) SetSurveyID(id uuid.UUID) *PromptUpdate {
+	pu.mutation.SetSurveyID(id)
+	return pu
+}
+
+// SetNillableSurveyID sets the "survey" edge to the Survey entity by ID if the given value is not nil.
+func (pu *PromptUpdate) SetNillableSurveyID(id *uuid.UUID) *PromptUpdate {
+	if id != nil {
+		pu = pu.SetSurveyID(*id)
+	}
+	return pu
+}
+
+// SetSurvey sets the "survey" edge to the Survey entity.
+func (pu *PromptUpdate) SetSurvey(s *Survey) *PromptUpdate {
+	return pu.SetSurveyID(s.ID)
+}
+
 // Mutation returns the PromptMutation object of the builder.
 func (pu *PromptUpdate) Mutation() *PromptMutation {
 	return pu.mutation
+}
+
+// ClearSurvey clears the "survey" edge to the Survey entity.
+func (pu *PromptUpdate) ClearSurvey() *PromptUpdate {
+	pu.mutation.ClearSurvey()
+	return pu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -185,6 +212,35 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.AdditionalFeedback(); ok {
 		_spec.SetField(prompt.FieldAdditionalFeedback, field.TypeBool, value)
+	}
+	if pu.mutation.SurveyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   prompt.SurveyTable,
+			Columns: []string{prompt.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   prompt.SurveyTable,
+			Columns: []string{prompt.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -289,9 +345,34 @@ func (puo *PromptUpdateOne) SetNillableAdditionalFeedback(b *bool) *PromptUpdate
 	return puo
 }
 
+// SetSurveyID sets the "survey" edge to the Survey entity by ID.
+func (puo *PromptUpdateOne) SetSurveyID(id uuid.UUID) *PromptUpdateOne {
+	puo.mutation.SetSurveyID(id)
+	return puo
+}
+
+// SetNillableSurveyID sets the "survey" edge to the Survey entity by ID if the given value is not nil.
+func (puo *PromptUpdateOne) SetNillableSurveyID(id *uuid.UUID) *PromptUpdateOne {
+	if id != nil {
+		puo = puo.SetSurveyID(*id)
+	}
+	return puo
+}
+
+// SetSurvey sets the "survey" edge to the Survey entity.
+func (puo *PromptUpdateOne) SetSurvey(s *Survey) *PromptUpdateOne {
+	return puo.SetSurveyID(s.ID)
+}
+
 // Mutation returns the PromptMutation object of the builder.
 func (puo *PromptUpdateOne) Mutation() *PromptMutation {
 	return puo.mutation
+}
+
+// ClearSurvey clears the "survey" edge to the Survey entity.
+func (puo *PromptUpdateOne) ClearSurvey() *PromptUpdateOne {
+	puo.mutation.ClearSurvey()
+	return puo
 }
 
 // Where appends a list predicates to the PromptUpdate builder.
@@ -393,6 +474,35 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 	}
 	if value, ok := puo.mutation.AdditionalFeedback(); ok {
 		_spec.SetField(prompt.FieldAdditionalFeedback, field.TypeBool, value)
+	}
+	if puo.mutation.SurveyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   prompt.SurveyTable,
+			Columns: []string{prompt.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   prompt.SurveyTable,
+			Columns: []string{prompt.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Prompt{config: puo.config}
 	_spec.Assign = _node.assignValues

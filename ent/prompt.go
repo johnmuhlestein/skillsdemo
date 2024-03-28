@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"skillsdemo/ent/prompt"
 	"skillsdemo/ent/schema"
+	"skillsdemo/ent/survey"
 	"strings"
 
 	"entgo.io/ent"
@@ -29,8 +30,31 @@ type Prompt struct {
 	ResponseType schema.Measure `json:"response_type,omitempty"`
 	// AdditionalFeedback holds the value of the "additional_feedback" field.
 	AdditionalFeedback bool `json:"additional_feedback,omitempty"`
-	survey_prompts     *uuid.UUID
-	selectValues       sql.SelectValues
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the PromptQuery when eager-loading is set.
+	Edges          PromptEdges `json:"edges"`
+	survey_prompts *uuid.UUID
+	selectValues   sql.SelectValues
+}
+
+// PromptEdges holds the relations/edges for other nodes in the graph.
+type PromptEdges struct {
+	// Survey holds the value of the survey edge.
+	Survey *Survey `json:"survey,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// SurveyOrErr returns the Survey value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PromptEdges) SurveyOrErr() (*Survey, error) {
+	if e.Survey != nil {
+		return e.Survey, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: survey.Label}
+	}
+	return nil, &NotLoadedError{edge: "survey"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -121,6 +145,11 @@ func (pr *Prompt) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (pr *Prompt) Value(name string) (ent.Value, error) {
 	return pr.selectValues.Get(name)
+}
+
+// QuerySurvey queries the "survey" edge of the Prompt entity.
+func (pr *Prompt) QuerySurvey() *SurveyQuery {
+	return NewPromptClient(pr.config).QuerySurvey(pr)
 }
 
 // Update returns a builder for updating this Prompt.

@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -39,5 +40,7 @@ func (Prompt) Fields() []ent.Field {
 
 // Edges of the Prompt.
 func (Prompt) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("survey", Survey.Type).Ref("prompts").Unique(),
+	}
 }

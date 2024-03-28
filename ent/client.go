@@ -1001,6 +1001,22 @@ func (c *PromptClient) GetX(ctx context.Context, id uuid.UUID) *Prompt {
 	return obj
 }
 
+// QuerySurvey queries the survey edge of a Prompt.
+func (c *PromptClient) QuerySurvey(pr *Prompt) *SurveyQuery {
+	query := (&SurveyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(prompt.Table, prompt.FieldID, id),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, prompt.SurveyTable, prompt.SurveyColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PromptClient) Hooks() []Hook {
 	return c.hooks.Prompt

@@ -6,6 +6,7 @@ import (
 	"skillsdemo/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -262,6 +263,29 @@ func AdditionalFeedbackEQ(v bool) predicate.Prompt {
 // AdditionalFeedbackNEQ applies the NEQ predicate on the "additional_feedback" field.
 func AdditionalFeedbackNEQ(v bool) predicate.Prompt {
 	return predicate.Prompt(sql.FieldNEQ(FieldAdditionalFeedback, v))
+}
+
+// HasSurvey applies the HasEdge predicate on the "survey" edge.
+func HasSurvey() predicate.Prompt {
+	return predicate.Prompt(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SurveyTable, SurveyColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSurveyWith applies the HasEdge predicate on the "survey" edge with a given conditions (other predicates).
+func HasSurveyWith(preds ...predicate.Survey) predicate.Prompt {
+	return predicate.Prompt(func(s *sql.Selector) {
+		step := newSurveyStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

@@ -4,7 +4,7 @@ package skillsdemo;
 option go_package = "rpc/survey";
 
 service Survey {
-    rpc MakeSurvey(SurveyReq) returns (SurveyResp);
+    rpc CreateSurvey(CreateSurveyReq) returns (SurveyResp);
 }
 
 enum SurveyStatus {
@@ -42,23 +42,43 @@ message MeasureFlags {
 
 message SurveyResp {
     string id = 1;
-    string appointment_id = 2;
     string title = 3;
     optional string description = 4;
     SurveyStatus status = 5;
-    optional Prompt prompts = 6;
-
+    repeated Prompt prompts = 6;
 }
-message SurveyReq {
+
+message CreateSurveyReq {
+    string title = 1;
+    optional string description = 2;
+    SurveyStatus status = 3;
+    repeated CreatePrompt prompts = 4;
+}
+
+message PendingFeedbackReq {
     string appointment_id = 1;
     string title = 2;
     optional string description = 3;
     SurveyStatus status = 4;
-    optional Prompt prompts = 5;
+    repeated Prompt prompts = 5;
+}
+
+message SurveyStatusReq {
+    string id = 1;
+    SurveyStatus status = 2;
+}
+
+message CreatePrompt {
+    int32 index = 1;
+    string title = 2;
+    string description = 3;
+    Measure response_type = 4;
+    bool allow_additional_feedback = 5;
+
 }
 
 message Prompt {
-    optional string id = 1;
+    string id = 1;
     int32 index = 2;
     string title = 3;
     string description = 4;

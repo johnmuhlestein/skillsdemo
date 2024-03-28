@@ -10,14 +10,25 @@ import (
 
 type Server struct {}
 
-func (s *Server) MakeSurvey (ctx context.Context, req *pb.SurveyReq) (*pb.SurveyResp, error) {
+func (s *Server) CreateSurvey (ctx context.Context, req *pb.CreateSurveyReq) (*pb.SurveyResp, error) {
 
-	return &pb.SurveyResp{
+	resp := &pb.SurveyResp{
 		Id: uuid.New().String(),
-		AppointmentId: req.AppointmentId,
 		Title: req.Title,
 		Description: req.Description,
 		Status: req.Status,
-		Prompts: req.Prompts,
-	},nil
+	}
+	for _, p  := range req.Prompts {
+		resp.Prompts = append(resp.Prompts, &pb.Prompt{
+			Id: uuid.New().String(),
+			Index: p.Index,
+			Title: p.Title,
+			Description: p.Description,
+			ResponseType: p.ResponseType,
+			AllowAdditionalFeedback: p.AllowAdditionalFeedback,
+		})
+	}
+	return resp,nil
 }
+
+

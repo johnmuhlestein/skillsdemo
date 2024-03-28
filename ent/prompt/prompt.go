@@ -4,6 +4,7 @@ package prompt
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -22,8 +23,17 @@ const (
 	FieldResponseType = "response_type"
 	// FieldAdditionalFeedback holds the string denoting the additional_feedback field in the database.
 	FieldAdditionalFeedback = "additional_feedback"
+	// EdgeSurvey holds the string denoting the survey edge name in mutations.
+	EdgeSurvey = "survey"
 	// Table holds the table name of the prompt in the database.
 	Table = "prompts"
+	// SurveyTable is the table that holds the survey relation/edge.
+	SurveyTable = "prompts"
+	// SurveyInverseTable is the table name for the Survey entity.
+	// It exists in this package in order to avoid circular dependency with the "survey" package.
+	SurveyInverseTable = "surveys"
+	// SurveyColumn is the table column denoting the survey relation/edge.
+	SurveyColumn = "survey_prompts"
 )
 
 // Columns holds all SQL columns for prompt fields.
@@ -92,4 +102,18 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 // ByAdditionalFeedback orders the results by the additional_feedback field.
 func ByAdditionalFeedback(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAdditionalFeedback, opts...).ToFunc()
+}
+
+// BySurveyField orders the results by survey field.
+func BySurveyField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSurveyStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newSurveyStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SurveyInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SurveyTable, SurveyColumn),
+	)
 }

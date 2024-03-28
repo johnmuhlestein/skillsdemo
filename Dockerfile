@@ -8,11 +8,11 @@ COPY --chown=app:app ent ent
 COPY --chown=app:app internal internal
 COPY --chown=app:app rpc rpc
 
-RUN go build -o /skillsdemo
+RUN go build -C cmd/server -o /skillsdemo
 
 FROM scratch
 WORKDIR /
-COPY --chown=app:app --from=build /skillsdemo /skillsdemo
+COPY --from=build /skillsdemo /skillsdemo
 EXPOSE 8080
 
-ENTRYPOINT ["skillsdemo"]
+ENTRYPOINT ["/skillsdemo"]

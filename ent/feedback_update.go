@@ -60,6 +60,12 @@ func (fu *FeedbackUpdate) SetNillableStartTime(t *time.Time) *FeedbackUpdate {
 	return fu
 }
 
+// ClearStartTime clears the value of the "start_time" field.
+func (fu *FeedbackUpdate) ClearStartTime() *FeedbackUpdate {
+	fu.mutation.ClearStartTime()
+	return fu
+}
+
 // SetCompletionTime sets the "completion_time" field.
 func (fu *FeedbackUpdate) SetCompletionTime(t time.Time) *FeedbackUpdate {
 	fu.mutation.SetCompletionTime(t)
@@ -71,6 +77,12 @@ func (fu *FeedbackUpdate) SetNillableCompletionTime(t *time.Time) *FeedbackUpdat
 	if t != nil {
 		fu.SetCompletionTime(*t)
 	}
+	return fu
+}
+
+// ClearCompletionTime clears the value of the "completion_time" field.
+func (fu *FeedbackUpdate) ClearCompletionTime() *FeedbackUpdate {
+	fu.mutation.ClearCompletionTime()
 	return fu
 }
 
@@ -207,8 +219,14 @@ func (fu *FeedbackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := fu.mutation.StartTime(); ok {
 		_spec.SetField(feedback.FieldStartTime, field.TypeTime, value)
 	}
+	if fu.mutation.StartTimeCleared() {
+		_spec.ClearField(feedback.FieldStartTime, field.TypeTime)
+	}
 	if value, ok := fu.mutation.CompletionTime(); ok {
 		_spec.SetField(feedback.FieldCompletionTime, field.TypeTime, value)
+	}
+	if fu.mutation.CompletionTimeCleared() {
+		_spec.ClearField(feedback.FieldCompletionTime, field.TypeTime)
 	}
 	if fu.mutation.ResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -361,6 +379,12 @@ func (fuo *FeedbackUpdateOne) SetNillableStartTime(t *time.Time) *FeedbackUpdate
 	return fuo
 }
 
+// ClearStartTime clears the value of the "start_time" field.
+func (fuo *FeedbackUpdateOne) ClearStartTime() *FeedbackUpdateOne {
+	fuo.mutation.ClearStartTime()
+	return fuo
+}
+
 // SetCompletionTime sets the "completion_time" field.
 func (fuo *FeedbackUpdateOne) SetCompletionTime(t time.Time) *FeedbackUpdateOne {
 	fuo.mutation.SetCompletionTime(t)
@@ -372,6 +396,12 @@ func (fuo *FeedbackUpdateOne) SetNillableCompletionTime(t *time.Time) *FeedbackU
 	if t != nil {
 		fuo.SetCompletionTime(*t)
 	}
+	return fuo
+}
+
+// ClearCompletionTime clears the value of the "completion_time" field.
+func (fuo *FeedbackUpdateOne) ClearCompletionTime() *FeedbackUpdateOne {
+	fuo.mutation.ClearCompletionTime()
 	return fuo
 }
 
@@ -538,8 +568,14 @@ func (fuo *FeedbackUpdateOne) sqlSave(ctx context.Context) (_node *Feedback, err
 	if value, ok := fuo.mutation.StartTime(); ok {
 		_spec.SetField(feedback.FieldStartTime, field.TypeTime, value)
 	}
+	if fuo.mutation.StartTimeCleared() {
+		_spec.ClearField(feedback.FieldStartTime, field.TypeTime)
+	}
 	if value, ok := fuo.mutation.CompletionTime(); ok {
 		_spec.SetField(feedback.FieldCompletionTime, field.TypeTime, value)
+	}
+	if fuo.mutation.CompletionTimeCleared() {
+		_spec.ClearField(feedback.FieldCompletionTime, field.TypeTime)
 	}
 	if fuo.mutation.ResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{

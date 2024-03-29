@@ -9,6 +9,7 @@ import (
 	"skillsdemo/ent/patient"
 	"skillsdemo/ent/provider"
 	"skillsdemo/ent/schema"
+	"skillsdemo/ent/survey"
 	"strings"
 
 	"entgo.io/ent"
@@ -30,6 +31,7 @@ type Appointment struct {
 	Edges                 AppointmentEdges `json:"edges"`
 	patient_appointments  *uuid.UUID
 	provider_appointments *uuid.UUID
+	survey_appointments   *uuid.UUID
 	selectValues          sql.SelectValues
 }
 
@@ -41,9 +43,11 @@ type AppointmentEdges struct {
 	Provider *Provider `json:"provider,omitempty"`
 	// Diagnoses holds the value of the diagnoses edge.
 	Diagnoses []*Diagnosis `json:"diagnoses,omitempty"`
+	// Survey holds the value of the survey edge.
+	Survey *Survey `json:"survey,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // PatientOrErr returns the Patient value or an error if the edge
@@ -77,6 +81,17 @@ func (e AppointmentEdges) DiagnosesOrErr() ([]*Diagnosis, error) {
 	return nil, &NotLoadedError{edge: "diagnoses"}
 }
 
+// SurveyOrErr returns the Survey value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AppointmentEdges) SurveyOrErr() (*Survey, error) {
+	if e.Survey != nil {
+		return e.Survey, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: survey.Label}
+	}
+	return nil, &NotLoadedError{edge: "survey"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Appointment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -91,6 +106,8 @@ func (*Appointment) scanValues(columns []string) ([]any, error) {
 		case appointment.ForeignKeys[0]: // patient_appointments
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case appointment.ForeignKeys[1]: // provider_appointments
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case appointment.ForeignKeys[2]: // survey_appointments
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
@@ -141,6 +158,13 @@ func (a *Appointment) assignValues(columns []string, values []any) error {
 				a.provider_appointments = new(uuid.UUID)
 				*a.provider_appointments = *value.S.(*uuid.UUID)
 			}
+		case appointment.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field survey_appointments", values[i])
+			} else if value.Valid {
+				a.survey_appointments = new(uuid.UUID)
+				*a.survey_appointments = *value.S.(*uuid.UUID)
+			}
 		default:
 			a.selectValues.Set(columns[i], values[i])
 		}
@@ -167,6 +191,11 @@ func (a *Appointment) QueryProvider() *ProviderQuery {
 // QueryDiagnoses queries the "diagnoses" edge of the Appointment entity.
 func (a *Appointment) QueryDiagnoses() *DiagnosisQuery {
 	return NewAppointmentClient(a.config).QueryDiagnoses(a)
+}
+
+// QuerySurvey queries the "survey" edge of the Appointment entity.
+func (a *Appointment) QuerySurvey() *SurveyQuery {
+	return NewAppointmentClient(a.config).QuerySurvey(a)
 }
 
 // Update returns a builder for updating this Appointment.

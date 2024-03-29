@@ -10,6 +10,7 @@ import (
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/promptresponse"
 	"skillsdemo/ent/schema"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,6 +29,20 @@ type PromptResponseUpdate struct {
 // Where appends a list predicates to the PromptResponseUpdate builder.
 func (pru *PromptResponseUpdate) Where(ps ...predicate.PromptResponse) *PromptResponseUpdate {
 	pru.mutation.Where(ps...)
+	return pru
+}
+
+// SetParsedTemplate sets the "parsed_template" field.
+func (pru *PromptResponseUpdate) SetParsedTemplate(s string) *PromptResponseUpdate {
+	pru.mutation.SetParsedTemplate(s)
+	return pru
+}
+
+// SetNillableParsedTemplate sets the "parsed_template" field if the given value is not nil.
+func (pru *PromptResponseUpdate) SetNillableParsedTemplate(s *string) *PromptResponseUpdate {
+	if s != nil {
+		pru.SetParsedTemplate(*s)
+	}
 	return pru
 }
 
@@ -157,6 +172,26 @@ func (pru *PromptResponseUpdate) ClearFreeformValue() *PromptResponseUpdate {
 	return pru
 }
 
+// SetAnsweredTime sets the "answered_time" field.
+func (pru *PromptResponseUpdate) SetAnsweredTime(t time.Time) *PromptResponseUpdate {
+	pru.mutation.SetAnsweredTime(t)
+	return pru
+}
+
+// SetNillableAnsweredTime sets the "answered_time" field if the given value is not nil.
+func (pru *PromptResponseUpdate) SetNillableAnsweredTime(t *time.Time) *PromptResponseUpdate {
+	if t != nil {
+		pru.SetAnsweredTime(*t)
+	}
+	return pru
+}
+
+// ClearAnsweredTime clears the value of the "answered_time" field.
+func (pru *PromptResponseUpdate) ClearAnsweredTime() *PromptResponseUpdate {
+	pru.mutation.ClearAnsweredTime()
+	return pru
+}
+
 // SetFeedbackID sets the "feedback" edge to the Feedback entity by ID.
 func (pru *PromptResponseUpdate) SetFeedbackID(id uuid.UUID) *PromptResponseUpdate {
 	pru.mutation.SetFeedbackID(id)
@@ -236,6 +271,9 @@ func (pru *PromptResponseUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 		}
 	}
+	if value, ok := pru.mutation.ParsedTemplate(); ok {
+		_spec.SetField(promptresponse.FieldParsedTemplate, field.TypeString, value)
+	}
 	if value, ok := pru.mutation.PromptIndex(); ok {
 		_spec.SetField(promptresponse.FieldPromptIndex, field.TypeInt, value)
 	}
@@ -279,6 +317,12 @@ func (pru *PromptResponseUpdate) sqlSave(ctx context.Context) (n int, err error)
 	}
 	if pru.mutation.FreeformValueCleared() {
 		_spec.ClearField(promptresponse.FieldFreeformValue, field.TypeString)
+	}
+	if value, ok := pru.mutation.AnsweredTime(); ok {
+		_spec.SetField(promptresponse.FieldAnsweredTime, field.TypeTime, value)
+	}
+	if pru.mutation.AnsweredTimeCleared() {
+		_spec.ClearField(promptresponse.FieldAnsweredTime, field.TypeTime)
 	}
 	if pru.mutation.FeedbackCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -327,6 +371,20 @@ type PromptResponseUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *PromptResponseMutation
+}
+
+// SetParsedTemplate sets the "parsed_template" field.
+func (pruo *PromptResponseUpdateOne) SetParsedTemplate(s string) *PromptResponseUpdateOne {
+	pruo.mutation.SetParsedTemplate(s)
+	return pruo
+}
+
+// SetNillableParsedTemplate sets the "parsed_template" field if the given value is not nil.
+func (pruo *PromptResponseUpdateOne) SetNillableParsedTemplate(s *string) *PromptResponseUpdateOne {
+	if s != nil {
+		pruo.SetParsedTemplate(*s)
+	}
+	return pruo
 }
 
 // SetPromptIndex sets the "prompt_index" field.
@@ -455,6 +513,26 @@ func (pruo *PromptResponseUpdateOne) ClearFreeformValue() *PromptResponseUpdateO
 	return pruo
 }
 
+// SetAnsweredTime sets the "answered_time" field.
+func (pruo *PromptResponseUpdateOne) SetAnsweredTime(t time.Time) *PromptResponseUpdateOne {
+	pruo.mutation.SetAnsweredTime(t)
+	return pruo
+}
+
+// SetNillableAnsweredTime sets the "answered_time" field if the given value is not nil.
+func (pruo *PromptResponseUpdateOne) SetNillableAnsweredTime(t *time.Time) *PromptResponseUpdateOne {
+	if t != nil {
+		pruo.SetAnsweredTime(*t)
+	}
+	return pruo
+}
+
+// ClearAnsweredTime clears the value of the "answered_time" field.
+func (pruo *PromptResponseUpdateOne) ClearAnsweredTime() *PromptResponseUpdateOne {
+	pruo.mutation.ClearAnsweredTime()
+	return pruo
+}
+
 // SetFeedbackID sets the "feedback" edge to the Feedback entity by ID.
 func (pruo *PromptResponseUpdateOne) SetFeedbackID(id uuid.UUID) *PromptResponseUpdateOne {
 	pruo.mutation.SetFeedbackID(id)
@@ -564,6 +642,9 @@ func (pruo *PromptResponseUpdateOne) sqlSave(ctx context.Context) (_node *Prompt
 			}
 		}
 	}
+	if value, ok := pruo.mutation.ParsedTemplate(); ok {
+		_spec.SetField(promptresponse.FieldParsedTemplate, field.TypeString, value)
+	}
 	if value, ok := pruo.mutation.PromptIndex(); ok {
 		_spec.SetField(promptresponse.FieldPromptIndex, field.TypeInt, value)
 	}
@@ -607,6 +688,12 @@ func (pruo *PromptResponseUpdateOne) sqlSave(ctx context.Context) (_node *Prompt
 	}
 	if pruo.mutation.FreeformValueCleared() {
 		_spec.ClearField(promptresponse.FieldFreeformValue, field.TypeString)
+	}
+	if value, ok := pruo.mutation.AnsweredTime(); ok {
+		_spec.SetField(promptresponse.FieldAnsweredTime, field.TypeTime, value)
+	}
+	if pruo.mutation.AnsweredTimeCleared() {
+		_spec.ClearField(promptresponse.FieldAnsweredTime, field.TypeTime)
 	}
 	if pruo.mutation.FeedbackCleared() {
 		edge := &sqlgraph.EdgeSpec{

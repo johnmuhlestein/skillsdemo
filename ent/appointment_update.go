@@ -12,6 +12,7 @@ import (
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/provider"
 	"skillsdemo/ent/schema"
+	"skillsdemo/ent/survey"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -113,6 +114,25 @@ func (au *AppointmentUpdate) AddDiagnoses(d ...*Diagnosis) *AppointmentUpdate {
 	return au.AddDiagnosisIDs(ids...)
 }
 
+// SetSurveyID sets the "survey" edge to the Survey entity by ID.
+func (au *AppointmentUpdate) SetSurveyID(id uuid.UUID) *AppointmentUpdate {
+	au.mutation.SetSurveyID(id)
+	return au
+}
+
+// SetNillableSurveyID sets the "survey" edge to the Survey entity by ID if the given value is not nil.
+func (au *AppointmentUpdate) SetNillableSurveyID(id *uuid.UUID) *AppointmentUpdate {
+	if id != nil {
+		au = au.SetSurveyID(*id)
+	}
+	return au
+}
+
+// SetSurvey sets the "survey" edge to the Survey entity.
+func (au *AppointmentUpdate) SetSurvey(s *Survey) *AppointmentUpdate {
+	return au.SetSurveyID(s.ID)
+}
+
 // Mutation returns the AppointmentMutation object of the builder.
 func (au *AppointmentUpdate) Mutation() *AppointmentMutation {
 	return au.mutation
@@ -149,6 +169,12 @@ func (au *AppointmentUpdate) RemoveDiagnoses(d ...*Diagnosis) *AppointmentUpdate
 		ids[i] = d[i].ID
 	}
 	return au.RemoveDiagnosisIDs(ids...)
+}
+
+// ClearSurvey clears the "survey" edge to the Survey entity.
+func (au *AppointmentUpdate) ClearSurvey() *AppointmentUpdate {
+	au.mutation.ClearSurvey()
+	return au
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -296,6 +322,35 @@ func (au *AppointmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if au.mutation.SurveyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   appointment.SurveyTable,
+			Columns: []string{appointment.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   appointment.SurveyTable,
+			Columns: []string{appointment.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{appointment.Label}
@@ -397,6 +452,25 @@ func (auo *AppointmentUpdateOne) AddDiagnoses(d ...*Diagnosis) *AppointmentUpdat
 	return auo.AddDiagnosisIDs(ids...)
 }
 
+// SetSurveyID sets the "survey" edge to the Survey entity by ID.
+func (auo *AppointmentUpdateOne) SetSurveyID(id uuid.UUID) *AppointmentUpdateOne {
+	auo.mutation.SetSurveyID(id)
+	return auo
+}
+
+// SetNillableSurveyID sets the "survey" edge to the Survey entity by ID if the given value is not nil.
+func (auo *AppointmentUpdateOne) SetNillableSurveyID(id *uuid.UUID) *AppointmentUpdateOne {
+	if id != nil {
+		auo = auo.SetSurveyID(*id)
+	}
+	return auo
+}
+
+// SetSurvey sets the "survey" edge to the Survey entity.
+func (auo *AppointmentUpdateOne) SetSurvey(s *Survey) *AppointmentUpdateOne {
+	return auo.SetSurveyID(s.ID)
+}
+
 // Mutation returns the AppointmentMutation object of the builder.
 func (auo *AppointmentUpdateOne) Mutation() *AppointmentMutation {
 	return auo.mutation
@@ -433,6 +507,12 @@ func (auo *AppointmentUpdateOne) RemoveDiagnoses(d ...*Diagnosis) *AppointmentUp
 		ids[i] = d[i].ID
 	}
 	return auo.RemoveDiagnosisIDs(ids...)
+}
+
+// ClearSurvey clears the "survey" edge to the Survey entity.
+func (auo *AppointmentUpdateOne) ClearSurvey() *AppointmentUpdateOne {
+	auo.mutation.ClearSurvey()
+	return auo
 }
 
 // Where appends a list predicates to the AppointmentUpdate builder.
@@ -603,6 +683,35 @@ func (auo *AppointmentUpdateOne) sqlSave(ctx context.Context) (_node *Appointmen
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(diagnosis.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.SurveyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   appointment.SurveyTable,
+			Columns: []string{appointment.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   appointment.SurveyTable,
+			Columns: []string{appointment.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

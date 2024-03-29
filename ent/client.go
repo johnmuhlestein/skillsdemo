@@ -421,6 +421,22 @@ func (c *AppointmentClient) QueryDiagnoses(a *Appointment) *DiagnosisQuery {
 	return query
 }
 
+// QuerySurvey queries the survey edge of a Appointment.
+func (c *AppointmentClient) QuerySurvey(a *Appointment) *SurveyQuery {
+	query := (&SurveyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(appointment.Table, appointment.FieldID, id),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, appointment.SurveyTable, appointment.SurveyColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *AppointmentClient) Hooks() []Hook {
 	return c.hooks.Appointment
@@ -1521,6 +1537,22 @@ func (c *SurveyClient) QueryFeedbacks(s *Survey) *FeedbackQuery {
 			sqlgraph.From(survey.Table, survey.FieldID, id),
 			sqlgraph.To(feedback.Table, feedback.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, survey.FeedbacksTable, survey.FeedbacksColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAppointments queries the appointments edge of a Survey.
+func (c *SurveyClient) QueryAppointments(s *Survey) *AppointmentQuery {
+	query := (&AppointmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(survey.Table, survey.FieldID, id),
+			sqlgraph.To(appointment.Table, appointment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, survey.AppointmentsTable, survey.AppointmentsColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil

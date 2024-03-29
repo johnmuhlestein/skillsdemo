@@ -12,6 +12,7 @@ import (
 	"skillsdemo/ent/patient"
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/provider"
+	"skillsdemo/ent/survey"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -29,6 +30,7 @@ type AppointmentQuery struct {
 	withPatient   *PatientQuery
 	withProvider  *ProviderQuery
 	withDiagnoses *DiagnosisQuery
+	withSurvey    *SurveyQuery
 	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -125,6 +127,28 @@ func (aq *AppointmentQuery) QueryDiagnoses() *DiagnosisQuery {
 			sqlgraph.From(appointment.Table, appointment.FieldID, selector),
 			sqlgraph.To(diagnosis.Table, diagnosis.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, appointment.DiagnosesTable, appointment.DiagnosesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySurvey chains the current query on the "survey" edge.
+func (aq *AppointmentQuery) QuerySurvey() *SurveyQuery {
+	query := (&SurveyClient{config: aq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(appointment.Table, appointment.FieldID, selector),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, appointment.SurveyTable, appointment.SurveyColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -327,6 +351,7 @@ func (aq *AppointmentQuery) Clone() *AppointmentQuery {
 		withPatient:   aq.withPatient.Clone(),
 		withProvider:  aq.withProvider.Clone(),
 		withDiagnoses: aq.withDiagnoses.Clone(),
+		withSurvey:    aq.withSurvey.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
@@ -363,6 +388,17 @@ func (aq *AppointmentQuery) WithDiagnoses(opts ...func(*DiagnosisQuery)) *Appoin
 		opt(query)
 	}
 	aq.withDiagnoses = query
+	return aq
+}
+
+// WithSurvey tells the query-builder to eager-load the nodes that are connected to
+// the "survey" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AppointmentQuery) WithSurvey(opts ...func(*SurveyQuery)) *AppointmentQuery {
+	query := (&SurveyClient{config: aq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withSurvey = query
 	return aq
 }
 
@@ -445,13 +481,14 @@ func (aq *AppointmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes       = []*Appointment{}
 		withFKs     = aq.withFKs
 		_spec       = aq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			aq.withPatient != nil,
 			aq.withProvider != nil,
 			aq.withDiagnoses != nil,
+			aq.withSurvey != nil,
 		}
 	)
-	if aq.withPatient != nil || aq.withProvider != nil {
+	if aq.withPatient != nil || aq.withProvider != nil || aq.withSurvey != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -491,6 +528,12 @@ func (aq *AppointmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := aq.loadDiagnoses(ctx, query, nodes,
 			func(n *Appointment) { n.Edges.Diagnoses = []*Diagnosis{} },
 			func(n *Appointment, e *Diagnosis) { n.Edges.Diagnoses = append(n.Edges.Diagnoses, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withSurvey; query != nil {
+		if err := aq.loadSurvey(ctx, query, nodes, nil,
+			func(n *Appointment, e *Survey) { n.Edges.Survey = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -618,6 +661,38 @@ func (aq *AppointmentQuery) loadDiagnoses(ctx context.Context, query *DiagnosisQ
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (aq *AppointmentQuery) loadSurvey(ctx context.Context, query *SurveyQuery, nodes []*Appointment, init func(*Appointment), assign func(*Appointment, *Survey)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Appointment)
+	for i := range nodes {
+		if nodes[i].survey_appointments == nil {
+			continue
+		}
+		fk := *nodes[i].survey_appointments
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(survey.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "survey_appointments" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

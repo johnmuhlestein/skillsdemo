@@ -13,6 +13,8 @@ const (
 	Label = "prompt_response"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldParsedTemplate holds the string denoting the parsed_template field in the database.
+	FieldParsedTemplate = "parsed_template"
 	// FieldPromptIndex holds the string denoting the prompt_index field in the database.
 	FieldPromptIndex = "prompt_index"
 	// FieldRangeValue holds the string denoting the range_value field in the database.
@@ -25,6 +27,8 @@ const (
 	FieldLabelValues = "label_values"
 	// FieldFreeformValue holds the string denoting the freeform_value field in the database.
 	FieldFreeformValue = "freeform_value"
+	// FieldAnsweredTime holds the string denoting the answered_time field in the database.
+	FieldAnsweredTime = "answered_time"
 	// EdgeFeedback holds the string denoting the feedback edge name in mutations.
 	EdgeFeedback = "feedback"
 	// Table holds the table name of the promptresponse in the database.
@@ -41,12 +45,14 @@ const (
 // Columns holds all SQL columns for promptresponse fields.
 var Columns = []string{
 	FieldID,
+	FieldParsedTemplate,
 	FieldPromptIndex,
 	FieldRangeValue,
 	FieldBoolValue,
 	FieldEnumValue,
 	FieldLabelValues,
 	FieldFreeformValue,
+	FieldAnsweredTime,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "prompt_responses"
@@ -85,6 +91,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// ByParsedTemplate orders the results by the parsed_template field.
+func ByParsedTemplate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldParsedTemplate, opts...).ToFunc()
+}
+
 // ByPromptIndex orders the results by the prompt_index field.
 func ByPromptIndex(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPromptIndex, opts...).ToFunc()
@@ -103,6 +114,11 @@ func ByBoolValue(opts ...sql.OrderTermOption) OrderOption {
 // ByFreeformValue orders the results by the freeform_value field.
 func ByFreeformValue(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFreeformValue, opts...).ToFunc()
+}
+
+// ByAnsweredTime orders the results by the answered_time field.
+func ByAnsweredTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAnsweredTime, opts...).ToFunc()
 }
 
 // ByFeedbackField orders the results by feedback field.

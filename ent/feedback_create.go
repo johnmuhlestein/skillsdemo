@@ -36,9 +36,25 @@ func (fc *FeedbackCreate) SetStartTime(t time.Time) *FeedbackCreate {
 	return fc
 }
 
+// SetNillableStartTime sets the "start_time" field if the given value is not nil.
+func (fc *FeedbackCreate) SetNillableStartTime(t *time.Time) *FeedbackCreate {
+	if t != nil {
+		fc.SetStartTime(*t)
+	}
+	return fc
+}
+
 // SetCompletionTime sets the "completion_time" field.
 func (fc *FeedbackCreate) SetCompletionTime(t time.Time) *FeedbackCreate {
 	fc.mutation.SetCompletionTime(t)
+	return fc
+}
+
+// SetNillableCompletionTime sets the "completion_time" field if the given value is not nil.
+func (fc *FeedbackCreate) SetNillableCompletionTime(t *time.Time) *FeedbackCreate {
+	if t != nil {
+		fc.SetCompletionTime(*t)
+	}
 	return fc
 }
 
@@ -154,12 +170,6 @@ func (fc *FeedbackCreate) defaults() {
 func (fc *FeedbackCreate) check() error {
 	if _, ok := fc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Feedback.status"`)}
-	}
-	if _, ok := fc.mutation.StartTime(); !ok {
-		return &ValidationError{Name: "start_time", err: errors.New(`ent: missing required field "Feedback.start_time"`)}
-	}
-	if _, ok := fc.mutation.CompletionTime(); !ok {
-		return &ValidationError{Name: "completion_time", err: errors.New(`ent: missing required field "Feedback.completion_time"`)}
 	}
 	return nil
 }

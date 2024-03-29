@@ -176,6 +176,16 @@ func StartTimeLTE(v time.Time) predicate.Feedback {
 	return predicate.Feedback(sql.FieldLTE(FieldStartTime, v))
 }
 
+// StartTimeIsNil applies the IsNil predicate on the "start_time" field.
+func StartTimeIsNil() predicate.Feedback {
+	return predicate.Feedback(sql.FieldIsNull(FieldStartTime))
+}
+
+// StartTimeNotNil applies the NotNil predicate on the "start_time" field.
+func StartTimeNotNil() predicate.Feedback {
+	return predicate.Feedback(sql.FieldNotNull(FieldStartTime))
+}
+
 // CompletionTimeEQ applies the EQ predicate on the "completion_time" field.
 func CompletionTimeEQ(v time.Time) predicate.Feedback {
 	return predicate.Feedback(sql.FieldEQ(FieldCompletionTime, v))
@@ -214,6 +224,16 @@ func CompletionTimeLT(v time.Time) predicate.Feedback {
 // CompletionTimeLTE applies the LTE predicate on the "completion_time" field.
 func CompletionTimeLTE(v time.Time) predicate.Feedback {
 	return predicate.Feedback(sql.FieldLTE(FieldCompletionTime, v))
+}
+
+// CompletionTimeIsNil applies the IsNil predicate on the "completion_time" field.
+func CompletionTimeIsNil() predicate.Feedback {
+	return predicate.Feedback(sql.FieldIsNull(FieldCompletionTime))
+}
+
+// CompletionTimeNotNil applies the NotNil predicate on the "completion_time" field.
+func CompletionTimeNotNil() predicate.Feedback {
+	return predicate.Feedback(sql.FieldNotNull(FieldCompletionTime))
 }
 
 // HasResponses applies the HasEdge predicate on the "responses" edge.

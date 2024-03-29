@@ -29,5 +29,6 @@ func (Survey) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("prompts", Prompt.Type),
 		edge.To("feedbacks", Feedback.Type),
+		edge.To("appointments", Appointment.Type),
 	}
 }

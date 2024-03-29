@@ -34,5 +34,6 @@ func (Appointment) Edges() []ent.Edge {
 		edge.From("patient", Patient.Type).Ref("appointments").Unique(),
 		edge.From("provider", Provider.Type).Ref("appointments").Unique(),
 		edge.To("diagnoses", Diagnosis.Type),
+		edge.From("survey", Survey.Type).Ref("appointments").Unique(),
 	}
 }

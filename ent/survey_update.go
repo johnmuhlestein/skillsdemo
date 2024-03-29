@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"skillsdemo/ent/appointment"
 	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/prompt"
@@ -143,6 +144,21 @@ func (su *SurveyUpdate) AddFeedbacks(f ...*Feedback) *SurveyUpdate {
 	return su.AddFeedbackIDs(ids...)
 }
 
+// AddAppointmentIDs adds the "appointments" edge to the Appointment entity by IDs.
+func (su *SurveyUpdate) AddAppointmentIDs(ids ...uuid.UUID) *SurveyUpdate {
+	su.mutation.AddAppointmentIDs(ids...)
+	return su
+}
+
+// AddAppointments adds the "appointments" edges to the Appointment entity.
+func (su *SurveyUpdate) AddAppointments(a ...*Appointment) *SurveyUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return su.AddAppointmentIDs(ids...)
+}
+
 // Mutation returns the SurveyMutation object of the builder.
 func (su *SurveyUpdate) Mutation() *SurveyMutation {
 	return su.mutation
@@ -188,6 +204,27 @@ func (su *SurveyUpdate) RemoveFeedbacks(f ...*Feedback) *SurveyUpdate {
 		ids[i] = f[i].ID
 	}
 	return su.RemoveFeedbackIDs(ids...)
+}
+
+// ClearAppointments clears all "appointments" edges to the Appointment entity.
+func (su *SurveyUpdate) ClearAppointments() *SurveyUpdate {
+	su.mutation.ClearAppointments()
+	return su
+}
+
+// RemoveAppointmentIDs removes the "appointments" edge to Appointment entities by IDs.
+func (su *SurveyUpdate) RemoveAppointmentIDs(ids ...uuid.UUID) *SurveyUpdate {
+	su.mutation.RemoveAppointmentIDs(ids...)
+	return su
+}
+
+// RemoveAppointments removes "appointments" edges to Appointment entities.
+func (su *SurveyUpdate) RemoveAppointments(a ...*Appointment) *SurveyUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return su.RemoveAppointmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -350,6 +387,51 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if su.mutation.AppointmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.AppointmentsTable,
+			Columns: []string{survey.AppointmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedAppointmentsIDs(); len(nodes) > 0 && !su.mutation.AppointmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.AppointmentsTable,
+			Columns: []string{survey.AppointmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.AppointmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.AppointmentsTable,
+			Columns: []string{survey.AppointmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{survey.Label}
@@ -482,6 +564,21 @@ func (suo *SurveyUpdateOne) AddFeedbacks(f ...*Feedback) *SurveyUpdateOne {
 	return suo.AddFeedbackIDs(ids...)
 }
 
+// AddAppointmentIDs adds the "appointments" edge to the Appointment entity by IDs.
+func (suo *SurveyUpdateOne) AddAppointmentIDs(ids ...uuid.UUID) *SurveyUpdateOne {
+	suo.mutation.AddAppointmentIDs(ids...)
+	return suo
+}
+
+// AddAppointments adds the "appointments" edges to the Appointment entity.
+func (suo *SurveyUpdateOne) AddAppointments(a ...*Appointment) *SurveyUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return suo.AddAppointmentIDs(ids...)
+}
+
 // Mutation returns the SurveyMutation object of the builder.
 func (suo *SurveyUpdateOne) Mutation() *SurveyMutation {
 	return suo.mutation
@@ -527,6 +624,27 @@ func (suo *SurveyUpdateOne) RemoveFeedbacks(f ...*Feedback) *SurveyUpdateOne {
 		ids[i] = f[i].ID
 	}
 	return suo.RemoveFeedbackIDs(ids...)
+}
+
+// ClearAppointments clears all "appointments" edges to the Appointment entity.
+func (suo *SurveyUpdateOne) ClearAppointments() *SurveyUpdateOne {
+	suo.mutation.ClearAppointments()
+	return suo
+}
+
+// RemoveAppointmentIDs removes the "appointments" edge to Appointment entities by IDs.
+func (suo *SurveyUpdateOne) RemoveAppointmentIDs(ids ...uuid.UUID) *SurveyUpdateOne {
+	suo.mutation.RemoveAppointmentIDs(ids...)
+	return suo
+}
+
+// RemoveAppointments removes "appointments" edges to Appointment entities.
+func (suo *SurveyUpdateOne) RemoveAppointments(a ...*Appointment) *SurveyUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return suo.RemoveAppointmentIDs(ids...)
 }
 
 // Where appends a list predicates to the SurveyUpdate builder.
@@ -712,6 +830,51 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (_node *Survey, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.AppointmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.AppointmentsTable,
+			Columns: []string{survey.AppointmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedAppointmentsIDs(); len(nodes) > 0 && !suo.mutation.AppointmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.AppointmentsTable,
+			Columns: []string{survey.AppointmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.AppointmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.AppointmentsTable,
+			Columns: []string{survey.AppointmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

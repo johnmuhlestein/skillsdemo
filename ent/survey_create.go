@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"skillsdemo/ent/appointment"
 	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/prompt"
 	"skillsdemo/ent/survey"
@@ -119,6 +120,21 @@ func (sc *SurveyCreate) AddFeedbacks(f ...*Feedback) *SurveyCreate {
 		ids[i] = f[i].ID
 	}
 	return sc.AddFeedbackIDs(ids...)
+}
+
+// AddAppointmentIDs adds the "appointments" edge to the Appointment entity by IDs.
+func (sc *SurveyCreate) AddAppointmentIDs(ids ...uuid.UUID) *SurveyCreate {
+	sc.mutation.AddAppointmentIDs(ids...)
+	return sc
+}
+
+// AddAppointments adds the "appointments" edges to the Appointment entity.
+func (sc *SurveyCreate) AddAppointments(a ...*Appointment) *SurveyCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return sc.AddAppointmentIDs(ids...)
 }
 
 // Mutation returns the SurveyMutation object of the builder.
@@ -262,6 +278,22 @@ func (sc *SurveyCreate) createSpec() (*Survey, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.AppointmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.AppointmentsTable,
+			Columns: []string{survey.AppointmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

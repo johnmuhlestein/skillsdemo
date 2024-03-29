@@ -45,13 +45,13 @@ func (du *DiagnosisUpdate) SetNillableStatus(s *string) *DiagnosisUpdate {
 	return du
 }
 
-// SetLastUpdated sets the "lastUpdated" field.
+// SetLastUpdated sets the "last_updated" field.
 func (du *DiagnosisUpdate) SetLastUpdated(t time.Time) *DiagnosisUpdate {
 	du.mutation.SetLastUpdated(t)
 	return du
 }
 
-// SetNillableLastUpdated sets the "lastUpdated" field if the given value is not nil.
+// SetNillableLastUpdated sets the "last_updated" field if the given value is not nil.
 func (du *DiagnosisUpdate) SetNillableLastUpdated(t *time.Time) *DiagnosisUpdate {
 	if t != nil {
 		du.SetLastUpdated(*t)
@@ -73,14 +73,14 @@ func (du *DiagnosisUpdate) SetNillableCode(s *schema.Code) *DiagnosisUpdate {
 	return du
 }
 
-// AddAppointmentIDs adds the "appointment" edge to the Appointment entity by IDs.
+// AddAppointmentIDs adds the "appointments" edge to the Appointment entity by IDs.
 func (du *DiagnosisUpdate) AddAppointmentIDs(ids ...uuid.UUID) *DiagnosisUpdate {
 	du.mutation.AddAppointmentIDs(ids...)
 	return du
 }
 
-// AddAppointment adds the "appointment" edges to the Appointment entity.
-func (du *DiagnosisUpdate) AddAppointment(a ...*Appointment) *DiagnosisUpdate {
+// AddAppointments adds the "appointments" edges to the Appointment entity.
+func (du *DiagnosisUpdate) AddAppointments(a ...*Appointment) *DiagnosisUpdate {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
@@ -93,20 +93,20 @@ func (du *DiagnosisUpdate) Mutation() *DiagnosisMutation {
 	return du.mutation
 }
 
-// ClearAppointment clears all "appointment" edges to the Appointment entity.
-func (du *DiagnosisUpdate) ClearAppointment() *DiagnosisUpdate {
-	du.mutation.ClearAppointment()
+// ClearAppointments clears all "appointments" edges to the Appointment entity.
+func (du *DiagnosisUpdate) ClearAppointments() *DiagnosisUpdate {
+	du.mutation.ClearAppointments()
 	return du
 }
 
-// RemoveAppointmentIDs removes the "appointment" edge to Appointment entities by IDs.
+// RemoveAppointmentIDs removes the "appointments" edge to Appointment entities by IDs.
 func (du *DiagnosisUpdate) RemoveAppointmentIDs(ids ...uuid.UUID) *DiagnosisUpdate {
 	du.mutation.RemoveAppointmentIDs(ids...)
 	return du
 }
 
-// RemoveAppointment removes "appointment" edges to Appointment entities.
-func (du *DiagnosisUpdate) RemoveAppointment(a ...*Appointment) *DiagnosisUpdate {
+// RemoveAppointments removes "appointments" edges to Appointment entities.
+func (du *DiagnosisUpdate) RemoveAppointments(a ...*Appointment) *DiagnosisUpdate {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
@@ -159,12 +159,12 @@ func (du *DiagnosisUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := du.mutation.Code(); ok {
 		_spec.SetField(diagnosis.FieldCode, field.TypeJSON, value)
 	}
-	if du.mutation.AppointmentCleared() {
+	if du.mutation.AppointmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   diagnosis.AppointmentTable,
-			Columns: diagnosis.AppointmentPrimaryKey,
+			Table:   diagnosis.AppointmentsTable,
+			Columns: diagnosis.AppointmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
@@ -172,12 +172,12 @@ func (du *DiagnosisUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := du.mutation.RemovedAppointmentIDs(); len(nodes) > 0 && !du.mutation.AppointmentCleared() {
+	if nodes := du.mutation.RemovedAppointmentsIDs(); len(nodes) > 0 && !du.mutation.AppointmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   diagnosis.AppointmentTable,
-			Columns: diagnosis.AppointmentPrimaryKey,
+			Table:   diagnosis.AppointmentsTable,
+			Columns: diagnosis.AppointmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
@@ -188,12 +188,12 @@ func (du *DiagnosisUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := du.mutation.AppointmentIDs(); len(nodes) > 0 {
+	if nodes := du.mutation.AppointmentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   diagnosis.AppointmentTable,
-			Columns: diagnosis.AppointmentPrimaryKey,
+			Table:   diagnosis.AppointmentsTable,
+			Columns: diagnosis.AppointmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
@@ -238,13 +238,13 @@ func (duo *DiagnosisUpdateOne) SetNillableStatus(s *string) *DiagnosisUpdateOne 
 	return duo
 }
 
-// SetLastUpdated sets the "lastUpdated" field.
+// SetLastUpdated sets the "last_updated" field.
 func (duo *DiagnosisUpdateOne) SetLastUpdated(t time.Time) *DiagnosisUpdateOne {
 	duo.mutation.SetLastUpdated(t)
 	return duo
 }
 
-// SetNillableLastUpdated sets the "lastUpdated" field if the given value is not nil.
+// SetNillableLastUpdated sets the "last_updated" field if the given value is not nil.
 func (duo *DiagnosisUpdateOne) SetNillableLastUpdated(t *time.Time) *DiagnosisUpdateOne {
 	if t != nil {
 		duo.SetLastUpdated(*t)
@@ -266,14 +266,14 @@ func (duo *DiagnosisUpdateOne) SetNillableCode(s *schema.Code) *DiagnosisUpdateO
 	return duo
 }
 
-// AddAppointmentIDs adds the "appointment" edge to the Appointment entity by IDs.
+// AddAppointmentIDs adds the "appointments" edge to the Appointment entity by IDs.
 func (duo *DiagnosisUpdateOne) AddAppointmentIDs(ids ...uuid.UUID) *DiagnosisUpdateOne {
 	duo.mutation.AddAppointmentIDs(ids...)
 	return duo
 }
 
-// AddAppointment adds the "appointment" edges to the Appointment entity.
-func (duo *DiagnosisUpdateOne) AddAppointment(a ...*Appointment) *DiagnosisUpdateOne {
+// AddAppointments adds the "appointments" edges to the Appointment entity.
+func (duo *DiagnosisUpdateOne) AddAppointments(a ...*Appointment) *DiagnosisUpdateOne {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
@@ -286,20 +286,20 @@ func (duo *DiagnosisUpdateOne) Mutation() *DiagnosisMutation {
 	return duo.mutation
 }
 
-// ClearAppointment clears all "appointment" edges to the Appointment entity.
-func (duo *DiagnosisUpdateOne) ClearAppointment() *DiagnosisUpdateOne {
-	duo.mutation.ClearAppointment()
+// ClearAppointments clears all "appointments" edges to the Appointment entity.
+func (duo *DiagnosisUpdateOne) ClearAppointments() *DiagnosisUpdateOne {
+	duo.mutation.ClearAppointments()
 	return duo
 }
 
-// RemoveAppointmentIDs removes the "appointment" edge to Appointment entities by IDs.
+// RemoveAppointmentIDs removes the "appointments" edge to Appointment entities by IDs.
 func (duo *DiagnosisUpdateOne) RemoveAppointmentIDs(ids ...uuid.UUID) *DiagnosisUpdateOne {
 	duo.mutation.RemoveAppointmentIDs(ids...)
 	return duo
 }
 
-// RemoveAppointment removes "appointment" edges to Appointment entities.
-func (duo *DiagnosisUpdateOne) RemoveAppointment(a ...*Appointment) *DiagnosisUpdateOne {
+// RemoveAppointments removes "appointments" edges to Appointment entities.
+func (duo *DiagnosisUpdateOne) RemoveAppointments(a ...*Appointment) *DiagnosisUpdateOne {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
@@ -382,12 +382,12 @@ func (duo *DiagnosisUpdateOne) sqlSave(ctx context.Context) (_node *Diagnosis, e
 	if value, ok := duo.mutation.Code(); ok {
 		_spec.SetField(diagnosis.FieldCode, field.TypeJSON, value)
 	}
-	if duo.mutation.AppointmentCleared() {
+	if duo.mutation.AppointmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   diagnosis.AppointmentTable,
-			Columns: diagnosis.AppointmentPrimaryKey,
+			Table:   diagnosis.AppointmentsTable,
+			Columns: diagnosis.AppointmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
@@ -395,12 +395,12 @@ func (duo *DiagnosisUpdateOne) sqlSave(ctx context.Context) (_node *Diagnosis, e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := duo.mutation.RemovedAppointmentIDs(); len(nodes) > 0 && !duo.mutation.AppointmentCleared() {
+	if nodes := duo.mutation.RemovedAppointmentsIDs(); len(nodes) > 0 && !duo.mutation.AppointmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   diagnosis.AppointmentTable,
-			Columns: diagnosis.AppointmentPrimaryKey,
+			Table:   diagnosis.AppointmentsTable,
+			Columns: diagnosis.AppointmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
@@ -411,12 +411,12 @@ func (duo *DiagnosisUpdateOne) sqlSave(ctx context.Context) (_node *Diagnosis, e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := duo.mutation.AppointmentIDs(); len(nodes) > 0 {
+	if nodes := duo.mutation.AppointmentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   diagnosis.AppointmentTable,
-			Columns: diagnosis.AppointmentPrimaryKey,
+			Table:   diagnosis.AppointmentsTable,
+			Columns: diagnosis.AppointmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),

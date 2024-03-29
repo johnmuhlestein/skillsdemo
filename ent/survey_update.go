@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/prompt"
 	"skillsdemo/ent/survey"
@@ -86,6 +87,12 @@ func (su *SurveyUpdate) SetNillableActiveTime(t *time.Time) *SurveyUpdate {
 	return su
 }
 
+// ClearActiveTime clears the value of the "active_time" field.
+func (su *SurveyUpdate) ClearActiveTime() *SurveyUpdate {
+	su.mutation.ClearActiveTime()
+	return su
+}
+
 // SetArchiveTime sets the "archive_time" field.
 func (su *SurveyUpdate) SetArchiveTime(t time.Time) *SurveyUpdate {
 	su.mutation.SetArchiveTime(t)
@@ -97,6 +104,12 @@ func (su *SurveyUpdate) SetNillableArchiveTime(t *time.Time) *SurveyUpdate {
 	if t != nil {
 		su.SetArchiveTime(*t)
 	}
+	return su
+}
+
+// ClearArchiveTime clears the value of the "archive_time" field.
+func (su *SurveyUpdate) ClearArchiveTime() *SurveyUpdate {
+	su.mutation.ClearArchiveTime()
 	return su
 }
 
@@ -113,6 +126,21 @@ func (su *SurveyUpdate) AddPrompts(p ...*Prompt) *SurveyUpdate {
 		ids[i] = p[i].ID
 	}
 	return su.AddPromptIDs(ids...)
+}
+
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by IDs.
+func (su *SurveyUpdate) AddFeedbackIDs(ids ...uuid.UUID) *SurveyUpdate {
+	su.mutation.AddFeedbackIDs(ids...)
+	return su
+}
+
+// AddFeedbacks adds the "feedbacks" edges to the Feedback entity.
+func (su *SurveyUpdate) AddFeedbacks(f ...*Feedback) *SurveyUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return su.AddFeedbackIDs(ids...)
 }
 
 // Mutation returns the SurveyMutation object of the builder.
@@ -139,6 +167,27 @@ func (su *SurveyUpdate) RemovePrompts(p ...*Prompt) *SurveyUpdate {
 		ids[i] = p[i].ID
 	}
 	return su.RemovePromptIDs(ids...)
+}
+
+// ClearFeedbacks clears all "feedbacks" edges to the Feedback entity.
+func (su *SurveyUpdate) ClearFeedbacks() *SurveyUpdate {
+	su.mutation.ClearFeedbacks()
+	return su
+}
+
+// RemoveFeedbackIDs removes the "feedbacks" edge to Feedback entities by IDs.
+func (su *SurveyUpdate) RemoveFeedbackIDs(ids ...uuid.UUID) *SurveyUpdate {
+	su.mutation.RemoveFeedbackIDs(ids...)
+	return su
+}
+
+// RemoveFeedbacks removes "feedbacks" edges to Feedback entities.
+func (su *SurveyUpdate) RemoveFeedbacks(f ...*Feedback) *SurveyUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return su.RemoveFeedbackIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -202,8 +251,14 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.ActiveTime(); ok {
 		_spec.SetField(survey.FieldActiveTime, field.TypeTime, value)
 	}
+	if su.mutation.ActiveTimeCleared() {
+		_spec.ClearField(survey.FieldActiveTime, field.TypeTime)
+	}
 	if value, ok := su.mutation.ArchiveTime(); ok {
 		_spec.SetField(survey.FieldArchiveTime, field.TypeTime, value)
+	}
+	if su.mutation.ArchiveTimeCleared() {
+		_spec.ClearField(survey.FieldArchiveTime, field.TypeTime)
 	}
 	if su.mutation.PromptsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -243,6 +298,51 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.FeedbacksTable,
+			Columns: []string{survey.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedFeedbacksIDs(); len(nodes) > 0 && !su.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.FeedbacksTable,
+			Columns: []string{survey.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.FeedbacksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.FeedbacksTable,
+			Columns: []string{survey.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -326,6 +426,12 @@ func (suo *SurveyUpdateOne) SetNillableActiveTime(t *time.Time) *SurveyUpdateOne
 	return suo
 }
 
+// ClearActiveTime clears the value of the "active_time" field.
+func (suo *SurveyUpdateOne) ClearActiveTime() *SurveyUpdateOne {
+	suo.mutation.ClearActiveTime()
+	return suo
+}
+
 // SetArchiveTime sets the "archive_time" field.
 func (suo *SurveyUpdateOne) SetArchiveTime(t time.Time) *SurveyUpdateOne {
 	suo.mutation.SetArchiveTime(t)
@@ -337,6 +443,12 @@ func (suo *SurveyUpdateOne) SetNillableArchiveTime(t *time.Time) *SurveyUpdateOn
 	if t != nil {
 		suo.SetArchiveTime(*t)
 	}
+	return suo
+}
+
+// ClearArchiveTime clears the value of the "archive_time" field.
+func (suo *SurveyUpdateOne) ClearArchiveTime() *SurveyUpdateOne {
+	suo.mutation.ClearArchiveTime()
 	return suo
 }
 
@@ -353,6 +465,21 @@ func (suo *SurveyUpdateOne) AddPrompts(p ...*Prompt) *SurveyUpdateOne {
 		ids[i] = p[i].ID
 	}
 	return suo.AddPromptIDs(ids...)
+}
+
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by IDs.
+func (suo *SurveyUpdateOne) AddFeedbackIDs(ids ...uuid.UUID) *SurveyUpdateOne {
+	suo.mutation.AddFeedbackIDs(ids...)
+	return suo
+}
+
+// AddFeedbacks adds the "feedbacks" edges to the Feedback entity.
+func (suo *SurveyUpdateOne) AddFeedbacks(f ...*Feedback) *SurveyUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return suo.AddFeedbackIDs(ids...)
 }
 
 // Mutation returns the SurveyMutation object of the builder.
@@ -379,6 +506,27 @@ func (suo *SurveyUpdateOne) RemovePrompts(p ...*Prompt) *SurveyUpdateOne {
 		ids[i] = p[i].ID
 	}
 	return suo.RemovePromptIDs(ids...)
+}
+
+// ClearFeedbacks clears all "feedbacks" edges to the Feedback entity.
+func (suo *SurveyUpdateOne) ClearFeedbacks() *SurveyUpdateOne {
+	suo.mutation.ClearFeedbacks()
+	return suo
+}
+
+// RemoveFeedbackIDs removes the "feedbacks" edge to Feedback entities by IDs.
+func (suo *SurveyUpdateOne) RemoveFeedbackIDs(ids ...uuid.UUID) *SurveyUpdateOne {
+	suo.mutation.RemoveFeedbackIDs(ids...)
+	return suo
+}
+
+// RemoveFeedbacks removes "feedbacks" edges to Feedback entities.
+func (suo *SurveyUpdateOne) RemoveFeedbacks(f ...*Feedback) *SurveyUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return suo.RemoveFeedbackIDs(ids...)
 }
 
 // Where appends a list predicates to the SurveyUpdate builder.
@@ -472,8 +620,14 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (_node *Survey, err err
 	if value, ok := suo.mutation.ActiveTime(); ok {
 		_spec.SetField(survey.FieldActiveTime, field.TypeTime, value)
 	}
+	if suo.mutation.ActiveTimeCleared() {
+		_spec.ClearField(survey.FieldActiveTime, field.TypeTime)
+	}
 	if value, ok := suo.mutation.ArchiveTime(); ok {
 		_spec.SetField(survey.FieldArchiveTime, field.TypeTime, value)
+	}
+	if suo.mutation.ArchiveTimeCleared() {
+		_spec.ClearField(survey.FieldArchiveTime, field.TypeTime)
 	}
 	if suo.mutation.PromptsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -513,6 +667,51 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (_node *Survey, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.FeedbacksTable,
+			Columns: []string{survey.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedFeedbacksIDs(); len(nodes) > 0 && !suo.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.FeedbacksTable,
+			Columns: []string{survey.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.FeedbacksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.FeedbacksTable,
+			Columns: []string{survey.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

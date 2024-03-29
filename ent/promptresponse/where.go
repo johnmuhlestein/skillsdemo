@@ -6,6 +6,7 @@ import (
 	"skillsdemo/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -332,6 +333,29 @@ func FreeformValueEqualFold(v string) predicate.PromptResponse {
 // FreeformValueContainsFold applies the ContainsFold predicate on the "freeform_value" field.
 func FreeformValueContainsFold(v string) predicate.PromptResponse {
 	return predicate.PromptResponse(sql.FieldContainsFold(FieldFreeformValue, v))
+}
+
+// HasFeedback applies the HasEdge predicate on the "feedback" edge.
+func HasFeedback() predicate.PromptResponse {
+	return predicate.PromptResponse(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FeedbackTable, FeedbackColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFeedbackWith applies the HasEdge predicate on the "feedback" edge with a given conditions (other predicates).
+func HasFeedbackWith(preds ...predicate.Feedback) predicate.PromptResponse {
+	return predicate.PromptResponse(func(s *sql.Selector) {
+		step := newFeedbackStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

@@ -25,6 +25,8 @@ const (
 	FieldAddress = "address"
 	// EdgeAppointments holds the string denoting the appointments edge name in mutations.
 	EdgeAppointments = "appointments"
+	// EdgeFeedbacks holds the string denoting the feedbacks edge name in mutations.
+	EdgeFeedbacks = "feedbacks"
 	// Table holds the table name of the patient in the database.
 	Table = "patients"
 	// AppointmentsTable is the table that holds the appointments relation/edge.
@@ -34,6 +36,13 @@ const (
 	AppointmentsInverseTable = "appointments"
 	// AppointmentsColumn is the table column denoting the appointments relation/edge.
 	AppointmentsColumn = "patient_appointments"
+	// FeedbacksTable is the table that holds the feedbacks relation/edge.
+	FeedbacksTable = "feedbacks"
+	// FeedbacksInverseTable is the table name for the Feedback entity.
+	// It exists in this package in order to avoid circular dependency with the "feedback" package.
+	FeedbacksInverseTable = "feedbacks"
+	// FeedbacksColumn is the table column denoting the feedbacks relation/edge.
+	FeedbacksColumn = "patient_feedbacks"
 )
 
 // Columns holds all SQL columns for patient fields.
@@ -92,10 +101,31 @@ func ByAppointments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAppointmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFeedbacksCount orders the results by feedbacks count.
+func ByFeedbacksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeedbacksStep(), opts...)
+	}
+}
+
+// ByFeedbacks orders the results by feedbacks terms.
+func ByFeedbacks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeedbacksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newAppointmentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AppointmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AppointmentsTable, AppointmentsColumn),
+	)
+}
+func newFeedbacksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeedbacksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeedbacksTable, FeedbacksColumn),
 	)
 }

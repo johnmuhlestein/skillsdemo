@@ -5,6 +5,7 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/promptresponse"
 	"skillsdemo/ent/schema"
 	"strings"
@@ -30,9 +31,32 @@ type PromptResponse struct {
 	// LabelValues holds the value of the "label_values" field.
 	LabelValues []string `json:"label_values,omitempty"`
 	// FreeformValue holds the value of the "freeform_value" field.
-	FreeformValue      string `json:"freeform_value,omitempty"`
+	FreeformValue string `json:"freeform_value,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the PromptResponseQuery when eager-loading is set.
+	Edges              PromptResponseEdges `json:"edges"`
 	feedback_responses *uuid.UUID
 	selectValues       sql.SelectValues
+}
+
+// PromptResponseEdges holds the relations/edges for other nodes in the graph.
+type PromptResponseEdges struct {
+	// Feedback holds the value of the feedback edge.
+	Feedback *Feedback `json:"feedback,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// FeedbackOrErr returns the Feedback value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PromptResponseEdges) FeedbackOrErr() (*Feedback, error) {
+	if e.Feedback != nil {
+		return e.Feedback, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: feedback.Label}
+	}
+	return nil, &NotLoadedError{edge: "feedback"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -129,6 +153,11 @@ func (pr *PromptResponse) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (pr *PromptResponse) Value(name string) (ent.Value, error) {
 	return pr.selectValues.Get(name)
+}
+
+// QueryFeedback queries the "feedback" edge of the PromptResponse entity.
+func (pr *PromptResponse) QueryFeedback() *FeedbackQuery {
+	return NewPromptResponseClient(pr.config).QueryFeedback(pr)
 }
 
 // Update returns a builder for updating this PromptResponse.

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/prompt"
 	"skillsdemo/ent/survey"
 	"time"
@@ -54,9 +55,25 @@ func (sc *SurveyCreate) SetActiveTime(t time.Time) *SurveyCreate {
 	return sc
 }
 
+// SetNillableActiveTime sets the "active_time" field if the given value is not nil.
+func (sc *SurveyCreate) SetNillableActiveTime(t *time.Time) *SurveyCreate {
+	if t != nil {
+		sc.SetActiveTime(*t)
+	}
+	return sc
+}
+
 // SetArchiveTime sets the "archive_time" field.
 func (sc *SurveyCreate) SetArchiveTime(t time.Time) *SurveyCreate {
 	sc.mutation.SetArchiveTime(t)
+	return sc
+}
+
+// SetNillableArchiveTime sets the "archive_time" field if the given value is not nil.
+func (sc *SurveyCreate) SetNillableArchiveTime(t *time.Time) *SurveyCreate {
+	if t != nil {
+		sc.SetArchiveTime(*t)
+	}
 	return sc
 }
 
@@ -87,6 +104,21 @@ func (sc *SurveyCreate) AddPrompts(p ...*Prompt) *SurveyCreate {
 		ids[i] = p[i].ID
 	}
 	return sc.AddPromptIDs(ids...)
+}
+
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by IDs.
+func (sc *SurveyCreate) AddFeedbackIDs(ids ...uuid.UUID) *SurveyCreate {
+	sc.mutation.AddFeedbackIDs(ids...)
+	return sc
+}
+
+// AddFeedbacks adds the "feedbacks" edges to the Feedback entity.
+func (sc *SurveyCreate) AddFeedbacks(f ...*Feedback) *SurveyCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return sc.AddFeedbackIDs(ids...)
 }
 
 // Mutation returns the SurveyMutation object of the builder.
@@ -149,12 +181,6 @@ func (sc *SurveyCreate) check() error {
 		if err := survey.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Survey.status": %w`, err)}
 		}
-	}
-	if _, ok := sc.mutation.ActiveTime(); !ok {
-		return &ValidationError{Name: "active_time", err: errors.New(`ent: missing required field "Survey.active_time"`)}
-	}
-	if _, ok := sc.mutation.ArchiveTime(); !ok {
-		return &ValidationError{Name: "archive_time", err: errors.New(`ent: missing required field "Survey.archive_time"`)}
 	}
 	return nil
 }
@@ -220,6 +246,22 @@ func (sc *SurveyCreate) createSpec() (*Survey, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.FeedbacksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   survey.FeedbacksTable,
+			Columns: []string{survey.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

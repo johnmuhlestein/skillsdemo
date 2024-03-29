@@ -22,8 +22,8 @@ type Diagnosis struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
-	// LastUpdated holds the value of the "lastUpdated" field.
-	LastUpdated time.Time `json:"lastUpdated,omitempty"`
+	// LastUpdated holds the value of the "last_updated" field.
+	LastUpdated time.Time `json:"last_updated,omitempty"`
 	// Code holds the value of the "code" field.
 	Code schema.Code `json:"code,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -34,20 +34,20 @@ type Diagnosis struct {
 
 // DiagnosisEdges holds the relations/edges for other nodes in the graph.
 type DiagnosisEdges struct {
-	// Appointment holds the value of the appointment edge.
-	Appointment []*Appointment `json:"appointment,omitempty"`
+	// Appointments holds the value of the appointments edge.
+	Appointments []*Appointment `json:"appointments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// AppointmentOrErr returns the Appointment value or an error if the edge
+// AppointmentsOrErr returns the Appointments value or an error if the edge
 // was not loaded in eager-loading.
-func (e DiagnosisEdges) AppointmentOrErr() ([]*Appointment, error) {
+func (e DiagnosisEdges) AppointmentsOrErr() ([]*Appointment, error) {
 	if e.loadedTypes[0] {
-		return e.Appointment, nil
+		return e.Appointments, nil
 	}
-	return nil, &NotLoadedError{edge: "appointment"}
+	return nil, &NotLoadedError{edge: "appointments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -92,7 +92,7 @@ func (d *Diagnosis) assignValues(columns []string, values []any) error {
 			}
 		case diagnosis.FieldLastUpdated:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field lastUpdated", values[i])
+				return fmt.Errorf("unexpected type %T for field last_updated", values[i])
 			} else if value.Valid {
 				d.LastUpdated = value.Time
 			}
@@ -117,9 +117,9 @@ func (d *Diagnosis) Value(name string) (ent.Value, error) {
 	return d.selectValues.Get(name)
 }
 
-// QueryAppointment queries the "appointment" edge of the Diagnosis entity.
-func (d *Diagnosis) QueryAppointment() *AppointmentQuery {
-	return NewDiagnosisClient(d.config).QueryAppointment(d)
+// QueryAppointments queries the "appointments" edge of the Diagnosis entity.
+func (d *Diagnosis) QueryAppointments() *AppointmentQuery {
+	return NewDiagnosisClient(d.config).QueryAppointments(d)
 }
 
 // Update returns a builder for updating this Diagnosis.
@@ -148,7 +148,7 @@ func (d *Diagnosis) String() string {
 	builder.WriteString("status=")
 	builder.WriteString(d.Status)
 	builder.WriteString(", ")
-	builder.WriteString("lastUpdated=")
+	builder.WriteString("last_updated=")
 	builder.WriteString(d.LastUpdated.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("code=")

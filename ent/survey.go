@@ -38,9 +38,11 @@ type Survey struct {
 type SurveyEdges struct {
 	// Prompts holds the value of the prompts edge.
 	Prompts []*Prompt `json:"prompts,omitempty"`
+	// Feedbacks holds the value of the feedbacks edge.
+	Feedbacks []*Feedback `json:"feedbacks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // PromptsOrErr returns the Prompts value or an error if the edge
@@ -50,6 +52,15 @@ func (e SurveyEdges) PromptsOrErr() ([]*Prompt, error) {
 		return e.Prompts, nil
 	}
 	return nil, &NotLoadedError{edge: "prompts"}
+}
+
+// FeedbacksOrErr returns the Feedbacks value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyEdges) FeedbacksOrErr() ([]*Feedback, error) {
+	if e.loadedTypes[1] {
+		return e.Feedbacks, nil
+	}
+	return nil, &NotLoadedError{edge: "feedbacks"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -130,6 +141,11 @@ func (s *Survey) Value(name string) (ent.Value, error) {
 // QueryPrompts queries the "prompts" edge of the Survey entity.
 func (s *Survey) QueryPrompts() *PromptQuery {
 	return NewSurveyClient(s.config).QueryPrompts(s)
+}
+
+// QueryFeedbacks queries the "feedbacks" edge of the Survey entity.
+func (s *Survey) QueryFeedbacks() *FeedbackQuery {
+	return NewSurveyClient(s.config).QueryFeedbacks(s)
 }
 
 // Update returns a builder for updating this Survey.

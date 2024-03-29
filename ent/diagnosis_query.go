@@ -20,11 +20,11 @@ import (
 // DiagnosisQuery is the builder for querying Diagnosis entities.
 type DiagnosisQuery struct {
 	config
-	ctx             *QueryContext
-	order           []diagnosis.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Diagnosis
-	withAppointment *AppointmentQuery
+	ctx              *QueryContext
+	order            []diagnosis.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Diagnosis
+	withAppointments *AppointmentQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -61,8 +61,8 @@ func (dq *DiagnosisQuery) Order(o ...diagnosis.OrderOption) *DiagnosisQuery {
 	return dq
 }
 
-// QueryAppointment chains the current query on the "appointment" edge.
-func (dq *DiagnosisQuery) QueryAppointment() *AppointmentQuery {
+// QueryAppointments chains the current query on the "appointments" edge.
+func (dq *DiagnosisQuery) QueryAppointments() *AppointmentQuery {
 	query := (&AppointmentClient{config: dq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := dq.prepareQuery(ctx); err != nil {
@@ -75,7 +75,7 @@ func (dq *DiagnosisQuery) QueryAppointment() *AppointmentQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(diagnosis.Table, diagnosis.FieldID, selector),
 			sqlgraph.To(appointment.Table, appointment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, diagnosis.AppointmentTable, diagnosis.AppointmentPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, diagnosis.AppointmentsTable, diagnosis.AppointmentsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,26 +270,26 @@ func (dq *DiagnosisQuery) Clone() *DiagnosisQuery {
 		return nil
 	}
 	return &DiagnosisQuery{
-		config:          dq.config,
-		ctx:             dq.ctx.Clone(),
-		order:           append([]diagnosis.OrderOption{}, dq.order...),
-		inters:          append([]Interceptor{}, dq.inters...),
-		predicates:      append([]predicate.Diagnosis{}, dq.predicates...),
-		withAppointment: dq.withAppointment.Clone(),
+		config:           dq.config,
+		ctx:              dq.ctx.Clone(),
+		order:            append([]diagnosis.OrderOption{}, dq.order...),
+		inters:           append([]Interceptor{}, dq.inters...),
+		predicates:       append([]predicate.Diagnosis{}, dq.predicates...),
+		withAppointments: dq.withAppointments.Clone(),
 		// clone intermediate query.
 		sql:  dq.sql.Clone(),
 		path: dq.path,
 	}
 }
 
-// WithAppointment tells the query-builder to eager-load the nodes that are connected to
-// the "appointment" edge. The optional arguments are used to configure the query builder of the edge.
-func (dq *DiagnosisQuery) WithAppointment(opts ...func(*AppointmentQuery)) *DiagnosisQuery {
+// WithAppointments tells the query-builder to eager-load the nodes that are connected to
+// the "appointments" edge. The optional arguments are used to configure the query builder of the edge.
+func (dq *DiagnosisQuery) WithAppointments(opts ...func(*AppointmentQuery)) *DiagnosisQuery {
 	query := (&AppointmentClient{config: dq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	dq.withAppointment = query
+	dq.withAppointments = query
 	return dq
 }
 
@@ -372,7 +372,7 @@ func (dq *DiagnosisQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Di
 		nodes       = []*Diagnosis{}
 		_spec       = dq.querySpec()
 		loadedTypes = [1]bool{
-			dq.withAppointment != nil,
+			dq.withAppointments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -393,17 +393,17 @@ func (dq *DiagnosisQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Di
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := dq.withAppointment; query != nil {
-		if err := dq.loadAppointment(ctx, query, nodes,
-			func(n *Diagnosis) { n.Edges.Appointment = []*Appointment{} },
-			func(n *Diagnosis, e *Appointment) { n.Edges.Appointment = append(n.Edges.Appointment, e) }); err != nil {
+	if query := dq.withAppointments; query != nil {
+		if err := dq.loadAppointments(ctx, query, nodes,
+			func(n *Diagnosis) { n.Edges.Appointments = []*Appointment{} },
+			func(n *Diagnosis, e *Appointment) { n.Edges.Appointments = append(n.Edges.Appointments, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (dq *DiagnosisQuery) loadAppointment(ctx context.Context, query *AppointmentQuery, nodes []*Diagnosis, init func(*Diagnosis), assign func(*Diagnosis, *Appointment)) error {
+func (dq *DiagnosisQuery) loadAppointments(ctx context.Context, query *AppointmentQuery, nodes []*Diagnosis, init func(*Diagnosis), assign func(*Diagnosis, *Appointment)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[uuid.UUID]*Diagnosis)
 	nids := make(map[uuid.UUID]map[*Diagnosis]struct{})
@@ -415,11 +415,11 @@ func (dq *DiagnosisQuery) loadAppointment(ctx context.Context, query *Appointmen
 		}
 	}
 	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(diagnosis.AppointmentTable)
-		s.Join(joinT).On(s.C(appointment.FieldID), joinT.C(diagnosis.AppointmentPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(diagnosis.AppointmentPrimaryKey[1]), edgeIDs...))
+		joinT := sql.Table(diagnosis.AppointmentsTable)
+		s.Join(joinT).On(s.C(appointment.FieldID), joinT.C(diagnosis.AppointmentsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(diagnosis.AppointmentsPrimaryKey[1]), edgeIDs...))
 		columns := s.SelectedColumns()
-		s.Select(joinT.C(diagnosis.AppointmentPrimaryKey[1]))
+		s.Select(joinT.C(diagnosis.AppointmentsPrimaryKey[1]))
 		s.AppendSelect(columns...)
 		s.SetDistinct(false)
 	})
@@ -456,7 +456,7 @@ func (dq *DiagnosisQuery) loadAppointment(ctx context.Context, query *Appointmen
 	for _, n := range neighbors {
 		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "appointment" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected "appointments" node returned %v`, n.ID)
 		}
 		for kn := range nodes {
 			assign(kn, n)

@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/promptresponse"
 
@@ -18,11 +19,12 @@ import (
 // PromptResponseQuery is the builder for querying PromptResponse entities.
 type PromptResponseQuery struct {
 	config
-	ctx        *QueryContext
-	order      []promptresponse.OrderOption
-	inters     []Interceptor
-	predicates []predicate.PromptResponse
-	withFKs    bool
+	ctx          *QueryContext
+	order        []promptresponse.OrderOption
+	inters       []Interceptor
+	predicates   []predicate.PromptResponse
+	withFeedback *FeedbackQuery
+	withFKs      bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +59,28 @@ func (prq *PromptResponseQuery) Unique(unique bool) *PromptResponseQuery {
 func (prq *PromptResponseQuery) Order(o ...promptresponse.OrderOption) *PromptResponseQuery {
 	prq.order = append(prq.order, o...)
 	return prq
+}
+
+// QueryFeedback chains the current query on the "feedback" edge.
+func (prq *PromptResponseQuery) QueryFeedback() *FeedbackQuery {
+	query := (&FeedbackClient{config: prq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := prq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := prq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(promptresponse.Table, promptresponse.FieldID, selector),
+			sqlgraph.To(feedback.Table, feedback.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, promptresponse.FeedbackTable, promptresponse.FeedbackColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(prq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first PromptResponse entity from the query.
@@ -246,15 +270,27 @@ func (prq *PromptResponseQuery) Clone() *PromptResponseQuery {
 		return nil
 	}
 	return &PromptResponseQuery{
-		config:     prq.config,
-		ctx:        prq.ctx.Clone(),
-		order:      append([]promptresponse.OrderOption{}, prq.order...),
-		inters:     append([]Interceptor{}, prq.inters...),
-		predicates: append([]predicate.PromptResponse{}, prq.predicates...),
+		config:       prq.config,
+		ctx:          prq.ctx.Clone(),
+		order:        append([]promptresponse.OrderOption{}, prq.order...),
+		inters:       append([]Interceptor{}, prq.inters...),
+		predicates:   append([]predicate.PromptResponse{}, prq.predicates...),
+		withFeedback: prq.withFeedback.Clone(),
 		// clone intermediate query.
 		sql:  prq.sql.Clone(),
 		path: prq.path,
 	}
+}
+
+// WithFeedback tells the query-builder to eager-load the nodes that are connected to
+// the "feedback" edge. The optional arguments are used to configure the query builder of the edge.
+func (prq *PromptResponseQuery) WithFeedback(opts ...func(*FeedbackQuery)) *PromptResponseQuery {
+	query := (&FeedbackClient{config: prq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	prq.withFeedback = query
+	return prq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -333,10 +369,16 @@ func (prq *PromptResponseQuery) prepareQuery(ctx context.Context) error {
 
 func (prq *PromptResponseQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PromptResponse, error) {
 	var (
-		nodes   = []*PromptResponse{}
-		withFKs = prq.withFKs
-		_spec   = prq.querySpec()
+		nodes       = []*PromptResponse{}
+		withFKs     = prq.withFKs
+		_spec       = prq.querySpec()
+		loadedTypes = [1]bool{
+			prq.withFeedback != nil,
+		}
 	)
+	if prq.withFeedback != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, promptresponse.ForeignKeys...)
 	}
@@ -346,6 +388,7 @@ func (prq *PromptResponseQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &PromptResponse{config: prq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -357,7 +400,46 @@ func (prq *PromptResponseQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := prq.withFeedback; query != nil {
+		if err := prq.loadFeedback(ctx, query, nodes, nil,
+			func(n *PromptResponse, e *Feedback) { n.Edges.Feedback = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (prq *PromptResponseQuery) loadFeedback(ctx context.Context, query *FeedbackQuery, nodes []*PromptResponse, init func(*PromptResponse), assign func(*PromptResponse, *Feedback)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*PromptResponse)
+	for i := range nodes {
+		if nodes[i].feedback_responses == nil {
+			continue
+		}
+		fk := *nodes[i].feedback_responses
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(feedback.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "feedback_responses" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (prq *PromptResponseQuery) sqlCount(ctx context.Context) (int, error) {

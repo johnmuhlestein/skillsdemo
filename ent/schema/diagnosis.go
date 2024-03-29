@@ -28,7 +28,7 @@ func (Diagnosis) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.String("status"),
-		field.Time("lastUpdated").Default(time.Now()),
+		field.Time("last_updated").Default(time.Now()),
 		field.JSON("code", Code{}),
 	}
 }
@@ -36,6 +36,6 @@ func (Diagnosis) Fields() []ent.Field {
 // Edges of the Diagnosis.
 func (Diagnosis) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("appointment", Appointment.Type).Ref("diagnoses"),
+		edge.From("appointments", Appointment.Type).Ref("diagnoses"),
 	}
 }

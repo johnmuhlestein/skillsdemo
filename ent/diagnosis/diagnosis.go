@@ -17,19 +17,19 @@ const (
 	FieldID = "id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
-	// FieldLastUpdated holds the string denoting the lastupdated field in the database.
+	// FieldLastUpdated holds the string denoting the last_updated field in the database.
 	FieldLastUpdated = "last_updated"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
-	// EdgeAppointment holds the string denoting the appointment edge name in mutations.
-	EdgeAppointment = "appointment"
+	// EdgeAppointments holds the string denoting the appointments edge name in mutations.
+	EdgeAppointments = "appointments"
 	// Table holds the table name of the diagnosis in the database.
 	Table = "diagnoses"
-	// AppointmentTable is the table that holds the appointment relation/edge. The primary key declared below.
-	AppointmentTable = "appointment_diagnoses"
-	// AppointmentInverseTable is the table name for the Appointment entity.
+	// AppointmentsTable is the table that holds the appointments relation/edge. The primary key declared below.
+	AppointmentsTable = "appointment_diagnoses"
+	// AppointmentsInverseTable is the table name for the Appointment entity.
 	// It exists in this package in order to avoid circular dependency with the "appointment" package.
-	AppointmentInverseTable = "appointments"
+	AppointmentsInverseTable = "appointments"
 )
 
 // Columns holds all SQL columns for diagnosis fields.
@@ -41,9 +41,9 @@ var Columns = []string{
 }
 
 var (
-	// AppointmentPrimaryKey and AppointmentColumn2 are the table columns denoting the
-	// primary key for the appointment relation (M2M).
-	AppointmentPrimaryKey = []string{"appointment_id", "diagnosis_id"}
+	// AppointmentsPrimaryKey and AppointmentsColumn2 are the table columns denoting the
+	// primary key for the appointments relation (M2M).
+	AppointmentsPrimaryKey = []string{"appointment_id", "diagnosis_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -57,7 +57,7 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultLastUpdated holds the default value on creation for the "lastUpdated" field.
+	// DefaultLastUpdated holds the default value on creation for the "last_updated" field.
 	DefaultLastUpdated time.Time
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
@@ -76,28 +76,28 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
-// ByLastUpdated orders the results by the lastUpdated field.
+// ByLastUpdated orders the results by the last_updated field.
 func ByLastUpdated(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastUpdated, opts...).ToFunc()
 }
 
-// ByAppointmentCount orders the results by appointment count.
-func ByAppointmentCount(opts ...sql.OrderTermOption) OrderOption {
+// ByAppointmentsCount orders the results by appointments count.
+func ByAppointmentsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAppointmentStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newAppointmentsStep(), opts...)
 	}
 }
 
-// ByAppointment orders the results by appointment terms.
-func ByAppointment(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByAppointments orders the results by appointments terms.
+func ByAppointments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAppointmentStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newAppointmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newAppointmentStep() *sqlgraph.Step {
+func newAppointmentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AppointmentInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, AppointmentTable, AppointmentPrimaryKey...),
+		sqlgraph.To(AppointmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, AppointmentsTable, AppointmentsPrimaryKey...),
 	)
 }

@@ -239,6 +239,52 @@ func HasResponsesWith(preds ...predicate.PromptResponse) predicate.Feedback {
 	})
 }
 
+// HasPatient applies the HasEdge predicate on the "patient" edge.
+func HasPatient() predicate.Feedback {
+	return predicate.Feedback(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PatientTable, PatientColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPatientWith applies the HasEdge predicate on the "patient" edge with a given conditions (other predicates).
+func HasPatientWith(preds ...predicate.Patient) predicate.Feedback {
+	return predicate.Feedback(func(s *sql.Selector) {
+		step := newPatientStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSurvey applies the HasEdge predicate on the "survey" edge.
+func HasSurvey() predicate.Feedback {
+	return predicate.Feedback(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SurveyTable, SurveyColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSurveyWith applies the HasEdge predicate on the "survey" edge with a given conditions (other predicates).
+func HasSurveyWith(preds ...predicate.Survey) predicate.Feedback {
+	return predicate.Feedback(func(s *sql.Selector) {
+		step := newSurveyStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Feedback) predicate.Feedback {
 	return predicate.Feedback(sql.AndPredicates(predicates...))

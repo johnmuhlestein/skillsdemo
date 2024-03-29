@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"skillsdemo/ent"
+	"skillsdemo/ent/migrate"
 	"skillsdemo/internal/surveyserver"
 	"skillsdemo/rpc/survey"
 
@@ -20,7 +21,7 @@ func main() {
 	defer client.Close()
     // Your code. For example:
     ctx := context.Background()
-    if err := client.Schema.Create(ctx); err != nil {
+    if err := client.Debug().Schema.Create(ctx,migrate.WithDropIndex(true),migrate.WithDropColumn(true)); err != nil {
         log.Fatal(err)
     }
 	log.Println("Successfully deployed database schema")

@@ -224,6 +224,29 @@ func HasAppointmentsWith(preds ...predicate.Appointment) predicate.Patient {
 	})
 }
 
+// HasFeedbacks applies the HasEdge predicate on the "feedbacks" edge.
+func HasFeedbacks() predicate.Patient {
+	return predicate.Patient(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FeedbacksTable, FeedbacksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFeedbacksWith applies the HasEdge predicate on the "feedbacks" edge with a given conditions (other predicates).
+func HasFeedbacksWith(preds ...predicate.Feedback) predicate.Patient {
+	return predicate.Patient(func(s *sql.Selector) {
+		step := newFeedbacksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Patient) predicate.Patient {
 	return predicate.Patient(sql.AndPredicates(predicates...))

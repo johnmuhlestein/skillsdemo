@@ -40,9 +40,11 @@ type Patient struct {
 type PatientEdges struct {
 	// Appointments holds the value of the appointments edge.
 	Appointments []*Appointment `json:"appointments,omitempty"`
+	// Feedbacks holds the value of the feedbacks edge.
+	Feedbacks []*Feedback `json:"feedbacks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // AppointmentsOrErr returns the Appointments value or an error if the edge
@@ -52,6 +54,15 @@ func (e PatientEdges) AppointmentsOrErr() ([]*Appointment, error) {
 		return e.Appointments, nil
 	}
 	return nil, &NotLoadedError{edge: "appointments"}
+}
+
+// FeedbacksOrErr returns the Feedbacks value or an error if the edge
+// was not loaded in eager-loading.
+func (e PatientEdges) FeedbacksOrErr() ([]*Feedback, error) {
+	if e.loadedTypes[1] {
+		return e.Feedbacks, nil
+	}
+	return nil, &NotLoadedError{edge: "feedbacks"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -140,6 +151,11 @@ func (pa *Patient) Value(name string) (ent.Value, error) {
 // QueryAppointments queries the "appointments" edge of the Patient entity.
 func (pa *Patient) QueryAppointments() *AppointmentQuery {
 	return NewPatientClient(pa.config).QueryAppointments(pa)
+}
+
+// QueryFeedbacks queries the "feedbacks" edge of the Patient entity.
+func (pa *Patient) QueryFeedbacks() *FeedbackQuery {
+	return NewPatientClient(pa.config).QueryFeedbacks(pa)
 }
 
 // Update returns a builder for updating this Patient.

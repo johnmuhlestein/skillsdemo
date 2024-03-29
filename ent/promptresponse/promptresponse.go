@@ -4,6 +4,7 @@ package promptresponse
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -24,8 +25,17 @@ const (
 	FieldLabelValues = "label_values"
 	// FieldFreeformValue holds the string denoting the freeform_value field in the database.
 	FieldFreeformValue = "freeform_value"
+	// EdgeFeedback holds the string denoting the feedback edge name in mutations.
+	EdgeFeedback = "feedback"
 	// Table holds the table name of the promptresponse in the database.
 	Table = "prompt_responses"
+	// FeedbackTable is the table that holds the feedback relation/edge.
+	FeedbackTable = "prompt_responses"
+	// FeedbackInverseTable is the table name for the Feedback entity.
+	// It exists in this package in order to avoid circular dependency with the "feedback" package.
+	FeedbackInverseTable = "feedbacks"
+	// FeedbackColumn is the table column denoting the feedback relation/edge.
+	FeedbackColumn = "feedback_responses"
 )
 
 // Columns holds all SQL columns for promptresponse fields.
@@ -93,4 +103,18 @@ func ByBoolValue(opts ...sql.OrderTermOption) OrderOption {
 // ByFreeformValue orders the results by the freeform_value field.
 func ByFreeformValue(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFreeformValue, opts...).ToFunc()
+}
+
+// ByFeedbackField orders the results by feedback field.
+func ByFeedbackField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeedbackStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newFeedbackStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeedbackInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, FeedbackTable, FeedbackColumn),
+	)
 }

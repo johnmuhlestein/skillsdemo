@@ -5,6 +5,8 @@ package ent
 import (
 	"fmt"
 	"skillsdemo/ent/feedback"
+	"skillsdemo/ent/patient"
+	"skillsdemo/ent/survey"
 	"strings"
 	"time"
 
@@ -26,17 +28,23 @@ type Feedback struct {
 	CompletionTime time.Time `json:"completion_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FeedbackQuery when eager-loading is set.
-	Edges        FeedbackEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges             FeedbackEdges `json:"edges"`
+	patient_feedbacks *uuid.UUID
+	survey_feedbacks  *uuid.UUID
+	selectValues      sql.SelectValues
 }
 
 // FeedbackEdges holds the relations/edges for other nodes in the graph.
 type FeedbackEdges struct {
 	// Responses holds the value of the responses edge.
 	Responses []*PromptResponse `json:"responses,omitempty"`
+	// Patient holds the value of the patient edge.
+	Patient *Patient `json:"patient,omitempty"`
+	// Survey holds the value of the survey edge.
+	Survey *Survey `json:"survey,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // ResponsesOrErr returns the Responses value or an error if the edge
@@ -46,6 +54,28 @@ func (e FeedbackEdges) ResponsesOrErr() ([]*PromptResponse, error) {
 		return e.Responses, nil
 	}
 	return nil, &NotLoadedError{edge: "responses"}
+}
+
+// PatientOrErr returns the Patient value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FeedbackEdges) PatientOrErr() (*Patient, error) {
+	if e.Patient != nil {
+		return e.Patient, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: patient.Label}
+	}
+	return nil, &NotLoadedError{edge: "patient"}
+}
+
+// SurveyOrErr returns the Survey value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FeedbackEdges) SurveyOrErr() (*Survey, error) {
+	if e.Survey != nil {
+		return e.Survey, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: survey.Label}
+	}
+	return nil, &NotLoadedError{edge: "survey"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -59,6 +89,10 @@ func (*Feedback) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case feedback.FieldID:
 			values[i] = new(uuid.UUID)
+		case feedback.ForeignKeys[0]: // patient_feedbacks
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case feedback.ForeignKeys[1]: // survey_feedbacks
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -98,6 +132,20 @@ func (f *Feedback) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				f.CompletionTime = value.Time
 			}
+		case feedback.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field patient_feedbacks", values[i])
+			} else if value.Valid {
+				f.patient_feedbacks = new(uuid.UUID)
+				*f.patient_feedbacks = *value.S.(*uuid.UUID)
+			}
+		case feedback.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field survey_feedbacks", values[i])
+			} else if value.Valid {
+				f.survey_feedbacks = new(uuid.UUID)
+				*f.survey_feedbacks = *value.S.(*uuid.UUID)
+			}
 		default:
 			f.selectValues.Set(columns[i], values[i])
 		}
@@ -114,6 +162,16 @@ func (f *Feedback) Value(name string) (ent.Value, error) {
 // QueryResponses queries the "responses" edge of the Feedback entity.
 func (f *Feedback) QueryResponses() *PromptResponseQuery {
 	return NewFeedbackClient(f.config).QueryResponses(f)
+}
+
+// QueryPatient queries the "patient" edge of the Feedback entity.
+func (f *Feedback) QueryPatient() *PatientQuery {
+	return NewFeedbackClient(f.config).QueryPatient(f)
+}
+
+// QuerySurvey queries the "survey" edge of the Feedback entity.
+func (f *Feedback) QuerySurvey() *SurveyQuery {
+	return NewFeedbackClient(f.config).QuerySurvey(f)
 }
 
 // Update returns a builder for updating this Feedback.

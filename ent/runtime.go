@@ -29,9 +29,9 @@ func init() {
 	appointment.DefaultID = appointmentDescID.Default.(func() uuid.UUID)
 	diagnosisFields := schema.Diagnosis{}.Fields()
 	_ = diagnosisFields
-	// diagnosisDescLastUpdated is the schema descriptor for lastUpdated field.
+	// diagnosisDescLastUpdated is the schema descriptor for last_updated field.
 	diagnosisDescLastUpdated := diagnosisFields[2].Descriptor()
-	// diagnosis.DefaultLastUpdated holds the default value on creation for the lastUpdated field.
+	// diagnosis.DefaultLastUpdated holds the default value on creation for the last_updated field.
 	diagnosis.DefaultLastUpdated = diagnosisDescLastUpdated.Default.(time.Time)
 	// diagnosisDescID is the schema descriptor for id field.
 	diagnosisDescID := diagnosisFields[0].Descriptor()

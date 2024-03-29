@@ -21,6 +21,10 @@ const (
 	FieldCompletionTime = "completion_time"
 	// EdgeResponses holds the string denoting the responses edge name in mutations.
 	EdgeResponses = "responses"
+	// EdgePatient holds the string denoting the patient edge name in mutations.
+	EdgePatient = "patient"
+	// EdgeSurvey holds the string denoting the survey edge name in mutations.
+	EdgeSurvey = "survey"
 	// Table holds the table name of the feedback in the database.
 	Table = "feedbacks"
 	// ResponsesTable is the table that holds the responses relation/edge.
@@ -30,6 +34,20 @@ const (
 	ResponsesInverseTable = "prompt_responses"
 	// ResponsesColumn is the table column denoting the responses relation/edge.
 	ResponsesColumn = "feedback_responses"
+	// PatientTable is the table that holds the patient relation/edge.
+	PatientTable = "feedbacks"
+	// PatientInverseTable is the table name for the Patient entity.
+	// It exists in this package in order to avoid circular dependency with the "patient" package.
+	PatientInverseTable = "patients"
+	// PatientColumn is the table column denoting the patient relation/edge.
+	PatientColumn = "patient_feedbacks"
+	// SurveyTable is the table that holds the survey relation/edge.
+	SurveyTable = "feedbacks"
+	// SurveyInverseTable is the table name for the Survey entity.
+	// It exists in this package in order to avoid circular dependency with the "survey" package.
+	SurveyInverseTable = "surveys"
+	// SurveyColumn is the table column denoting the survey relation/edge.
+	SurveyColumn = "survey_feedbacks"
 )
 
 // Columns holds all SQL columns for feedback fields.
@@ -40,10 +58,22 @@ var Columns = []string{
 	FieldCompletionTime,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "feedbacks"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"patient_feedbacks",
+	"survey_feedbacks",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -91,10 +121,38 @@ func ByResponses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newResponsesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPatientField orders the results by patient field.
+func ByPatientField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPatientStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// BySurveyField orders the results by survey field.
+func BySurveyField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSurveyStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newResponsesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ResponsesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ResponsesTable, ResponsesColumn),
+	)
+}
+func newPatientStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PatientInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PatientTable, PatientColumn),
+	)
+}
+func newSurveyStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SurveyInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SurveyTable, SurveyColumn),
 	)
 }

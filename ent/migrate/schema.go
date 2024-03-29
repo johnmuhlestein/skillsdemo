@@ -55,12 +55,28 @@ var (
 		{Name: "status", Type: field.TypeString},
 		{Name: "start_time", Type: field.TypeTime},
 		{Name: "completion_time", Type: field.TypeTime},
+		{Name: "patient_feedbacks", Type: field.TypeUUID, Nullable: true},
+		{Name: "survey_feedbacks", Type: field.TypeUUID, Nullable: true},
 	}
 	// FeedbacksTable holds the schema information for the "feedbacks" table.
 	FeedbacksTable = &schema.Table{
 		Name:       "feedbacks",
 		Columns:    FeedbacksColumns,
 		PrimaryKey: []*schema.Column{FeedbacksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "feedbacks_patients_feedbacks",
+				Columns:    []*schema.Column{FeedbacksColumns[4]},
+				RefColumns: []*schema.Column{PatientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "feedbacks_surveys_feedbacks",
+				Columns:    []*schema.Column{FeedbacksColumns[5]},
+				RefColumns: []*schema.Column{SurveysColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// PatientsColumns holds the columns for the "patients" table.
 	PatientsColumns = []*schema.Column{
@@ -81,7 +97,7 @@ var (
 	PromptsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "sort_order", Type: field.TypeInt},
-		{Name: "title", Type: field.TypeString, Unique: true},
+		{Name: "title", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "response_type", Type: field.TypeJSON},
 		{Name: "additional_feedback", Type: field.TypeBool, Default: false},
@@ -143,8 +159,8 @@ var (
 		{Name: "title", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"unpublished", "active", "archived"}, Default: "unpublished"},
-		{Name: "active_time", Type: field.TypeTime},
-		{Name: "archive_time", Type: field.TypeTime},
+		{Name: "active_time", Type: field.TypeTime, Nullable: true},
+		{Name: "archive_time", Type: field.TypeTime, Nullable: true},
 	}
 	// SurveysTable holds the schema information for the "surveys" table.
 	SurveysTable = &schema.Table{
@@ -194,6 +210,8 @@ var (
 func init() {
 	AppointmentsTable.ForeignKeys[0].RefTable = PatientsTable
 	AppointmentsTable.ForeignKeys[1].RefTable = ProvidersTable
+	FeedbacksTable.ForeignKeys[0].RefTable = PatientsTable
+	FeedbacksTable.ForeignKeys[1].RefTable = SurveysTable
 	PromptsTable.ForeignKeys[0].RefTable = SurveysTable
 	PromptResponsesTable.ForeignKeys[0].RefTable = FeedbacksTable
 	AppointmentDiagnosesTable.ForeignKeys[0].RefTable = AppointmentsTable

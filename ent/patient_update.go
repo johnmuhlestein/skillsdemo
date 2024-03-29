@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"skillsdemo/ent/appointment"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/patient"
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/schema"
@@ -131,6 +132,21 @@ func (pu *PatientUpdate) AddAppointments(a ...*Appointment) *PatientUpdate {
 	return pu.AddAppointmentIDs(ids...)
 }
 
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by IDs.
+func (pu *PatientUpdate) AddFeedbackIDs(ids ...uuid.UUID) *PatientUpdate {
+	pu.mutation.AddFeedbackIDs(ids...)
+	return pu
+}
+
+// AddFeedbacks adds the "feedbacks" edges to the Feedback entity.
+func (pu *PatientUpdate) AddFeedbacks(f ...*Feedback) *PatientUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return pu.AddFeedbackIDs(ids...)
+}
+
 // Mutation returns the PatientMutation object of the builder.
 func (pu *PatientUpdate) Mutation() *PatientMutation {
 	return pu.mutation
@@ -155,6 +171,27 @@ func (pu *PatientUpdate) RemoveAppointments(a ...*Appointment) *PatientUpdate {
 		ids[i] = a[i].ID
 	}
 	return pu.RemoveAppointmentIDs(ids...)
+}
+
+// ClearFeedbacks clears all "feedbacks" edges to the Feedback entity.
+func (pu *PatientUpdate) ClearFeedbacks() *PatientUpdate {
+	pu.mutation.ClearFeedbacks()
+	return pu
+}
+
+// RemoveFeedbackIDs removes the "feedbacks" edge to Feedback entities by IDs.
+func (pu *PatientUpdate) RemoveFeedbackIDs(ids ...uuid.UUID) *PatientUpdate {
+	pu.mutation.RemoveFeedbackIDs(ids...)
+	return pu
+}
+
+// RemoveFeedbacks removes "feedbacks" edges to Feedback entities.
+func (pu *PatientUpdate) RemoveFeedbacks(f ...*Feedback) *PatientUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return pu.RemoveFeedbackIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -265,6 +302,51 @@ func (pu *PatientUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   patient.FeedbacksTable,
+			Columns: []string{patient.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedFeedbacksIDs(); len(nodes) > 0 && !pu.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   patient.FeedbacksTable,
+			Columns: []string{patient.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.FeedbacksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   patient.FeedbacksTable,
+			Columns: []string{patient.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -391,6 +473,21 @@ func (puo *PatientUpdateOne) AddAppointments(a ...*Appointment) *PatientUpdateOn
 	return puo.AddAppointmentIDs(ids...)
 }
 
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by IDs.
+func (puo *PatientUpdateOne) AddFeedbackIDs(ids ...uuid.UUID) *PatientUpdateOne {
+	puo.mutation.AddFeedbackIDs(ids...)
+	return puo
+}
+
+// AddFeedbacks adds the "feedbacks" edges to the Feedback entity.
+func (puo *PatientUpdateOne) AddFeedbacks(f ...*Feedback) *PatientUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return puo.AddFeedbackIDs(ids...)
+}
+
 // Mutation returns the PatientMutation object of the builder.
 func (puo *PatientUpdateOne) Mutation() *PatientMutation {
 	return puo.mutation
@@ -415,6 +512,27 @@ func (puo *PatientUpdateOne) RemoveAppointments(a ...*Appointment) *PatientUpdat
 		ids[i] = a[i].ID
 	}
 	return puo.RemoveAppointmentIDs(ids...)
+}
+
+// ClearFeedbacks clears all "feedbacks" edges to the Feedback entity.
+func (puo *PatientUpdateOne) ClearFeedbacks() *PatientUpdateOne {
+	puo.mutation.ClearFeedbacks()
+	return puo
+}
+
+// RemoveFeedbackIDs removes the "feedbacks" edge to Feedback entities by IDs.
+func (puo *PatientUpdateOne) RemoveFeedbackIDs(ids ...uuid.UUID) *PatientUpdateOne {
+	puo.mutation.RemoveFeedbackIDs(ids...)
+	return puo
+}
+
+// RemoveFeedbacks removes "feedbacks" edges to Feedback entities.
+func (puo *PatientUpdateOne) RemoveFeedbacks(f ...*Feedback) *PatientUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return puo.RemoveFeedbackIDs(ids...)
 }
 
 // Where appends a list predicates to the PatientUpdate builder.
@@ -555,6 +673,51 @@ func (puo *PatientUpdateOne) sqlSave(ctx context.Context) (_node *Patient, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   patient.FeedbacksTable,
+			Columns: []string{patient.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedFeedbacksIDs(); len(nodes) > 0 && !puo.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   patient.FeedbacksTable,
+			Columns: []string{patient.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.FeedbacksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   patient.FeedbacksTable,
+			Columns: []string{patient.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

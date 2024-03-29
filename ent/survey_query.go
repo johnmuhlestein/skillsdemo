@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/prompt"
 	"skillsdemo/ent/survey"
@@ -20,11 +21,12 @@ import (
 // SurveyQuery is the builder for querying Survey entities.
 type SurveyQuery struct {
 	config
-	ctx         *QueryContext
-	order       []survey.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.Survey
-	withPrompts *PromptQuery
+	ctx           *QueryContext
+	order         []survey.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.Survey
+	withPrompts   *PromptQuery
+	withFeedbacks *FeedbackQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (sq *SurveyQuery) QueryPrompts() *PromptQuery {
 			sqlgraph.From(survey.Table, survey.FieldID, selector),
 			sqlgraph.To(prompt.Table, prompt.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, survey.PromptsTable, survey.PromptsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFeedbacks chains the current query on the "feedbacks" edge.
+func (sq *SurveyQuery) QueryFeedbacks() *FeedbackQuery {
+	query := (&FeedbackClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(survey.Table, survey.FieldID, selector),
+			sqlgraph.To(feedback.Table, feedback.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, survey.FeedbacksTable, survey.FeedbacksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +294,13 @@ func (sq *SurveyQuery) Clone() *SurveyQuery {
 		return nil
 	}
 	return &SurveyQuery{
-		config:      sq.config,
-		ctx:         sq.ctx.Clone(),
-		order:       append([]survey.OrderOption{}, sq.order...),
-		inters:      append([]Interceptor{}, sq.inters...),
-		predicates:  append([]predicate.Survey{}, sq.predicates...),
-		withPrompts: sq.withPrompts.Clone(),
+		config:        sq.config,
+		ctx:           sq.ctx.Clone(),
+		order:         append([]survey.OrderOption{}, sq.order...),
+		inters:        append([]Interceptor{}, sq.inters...),
+		predicates:    append([]predicate.Survey{}, sq.predicates...),
+		withPrompts:   sq.withPrompts.Clone(),
+		withFeedbacks: sq.withFeedbacks.Clone(),
 		// clone intermediate query.
 		sql:  sq.sql.Clone(),
 		path: sq.path,
@@ -290,6 +315,17 @@ func (sq *SurveyQuery) WithPrompts(opts ...func(*PromptQuery)) *SurveyQuery {
 		opt(query)
 	}
 	sq.withPrompts = query
+	return sq
+}
+
+// WithFeedbacks tells the query-builder to eager-load the nodes that are connected to
+// the "feedbacks" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SurveyQuery) WithFeedbacks(opts ...func(*FeedbackQuery)) *SurveyQuery {
+	query := (&FeedbackClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withFeedbacks = query
 	return sq
 }
 
@@ -371,8 +407,9 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Surve
 	var (
 		nodes       = []*Survey{}
 		_spec       = sq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			sq.withPrompts != nil,
+			sq.withFeedbacks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +434,13 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Surve
 		if err := sq.loadPrompts(ctx, query, nodes,
 			func(n *Survey) { n.Edges.Prompts = []*Prompt{} },
 			func(n *Survey, e *Prompt) { n.Edges.Prompts = append(n.Edges.Prompts, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := sq.withFeedbacks; query != nil {
+		if err := sq.loadFeedbacks(ctx, query, nodes,
+			func(n *Survey) { n.Edges.Feedbacks = []*Feedback{} },
+			func(n *Survey, e *Feedback) { n.Edges.Feedbacks = append(n.Edges.Feedbacks, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -429,6 +473,37 @@ func (sq *SurveyQuery) loadPrompts(ctx context.Context, query *PromptQuery, node
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "survey_prompts" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (sq *SurveyQuery) loadFeedbacks(ctx context.Context, query *FeedbackQuery, nodes []*Survey, init func(*Survey), assign func(*Survey, *Feedback)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Survey)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Feedback(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(survey.FeedbacksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.survey_feedbacks
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "survey_feedbacks" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "survey_feedbacks" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

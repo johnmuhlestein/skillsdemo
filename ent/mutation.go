@@ -643,19 +643,19 @@ func (m *AppointmentMutation) ResetEdge(name string) error {
 // DiagnosisMutation represents an operation that mutates the Diagnosis nodes in the graph.
 type DiagnosisMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	status             *string
-	lastUpdated        *time.Time
-	code               *schema.Code
-	clearedFields      map[string]struct{}
-	appointment        map[uuid.UUID]struct{}
-	removedappointment map[uuid.UUID]struct{}
-	clearedappointment bool
-	done               bool
-	oldValue           func(context.Context) (*Diagnosis, error)
-	predicates         []predicate.Diagnosis
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	status              *string
+	last_updated        *time.Time
+	code                *schema.Code
+	clearedFields       map[string]struct{}
+	appointments        map[uuid.UUID]struct{}
+	removedappointments map[uuid.UUID]struct{}
+	clearedappointments bool
+	done                bool
+	oldValue            func(context.Context) (*Diagnosis, error)
+	predicates          []predicate.Diagnosis
 }
 
 var _ ent.Mutation = (*DiagnosisMutation)(nil)
@@ -798,21 +798,21 @@ func (m *DiagnosisMutation) ResetStatus() {
 	m.status = nil
 }
 
-// SetLastUpdated sets the "lastUpdated" field.
+// SetLastUpdated sets the "last_updated" field.
 func (m *DiagnosisMutation) SetLastUpdated(t time.Time) {
-	m.lastUpdated = &t
+	m.last_updated = &t
 }
 
-// LastUpdated returns the value of the "lastUpdated" field in the mutation.
+// LastUpdated returns the value of the "last_updated" field in the mutation.
 func (m *DiagnosisMutation) LastUpdated() (r time.Time, exists bool) {
-	v := m.lastUpdated
+	v := m.last_updated
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLastUpdated returns the old "lastUpdated" field's value of the Diagnosis entity.
+// OldLastUpdated returns the old "last_updated" field's value of the Diagnosis entity.
 // If the Diagnosis object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *DiagnosisMutation) OldLastUpdated(ctx context.Context) (v time.Time, err error) {
@@ -829,9 +829,9 @@ func (m *DiagnosisMutation) OldLastUpdated(ctx context.Context) (v time.Time, er
 	return oldValue.LastUpdated, nil
 }
 
-// ResetLastUpdated resets all changes to the "lastUpdated" field.
+// ResetLastUpdated resets all changes to the "last_updated" field.
 func (m *DiagnosisMutation) ResetLastUpdated() {
-	m.lastUpdated = nil
+	m.last_updated = nil
 }
 
 // SetCode sets the "code" field.
@@ -870,58 +870,58 @@ func (m *DiagnosisMutation) ResetCode() {
 	m.code = nil
 }
 
-// AddAppointmentIDs adds the "appointment" edge to the Appointment entity by ids.
+// AddAppointmentIDs adds the "appointments" edge to the Appointment entity by ids.
 func (m *DiagnosisMutation) AddAppointmentIDs(ids ...uuid.UUID) {
-	if m.appointment == nil {
-		m.appointment = make(map[uuid.UUID]struct{})
+	if m.appointments == nil {
+		m.appointments = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.appointment[ids[i]] = struct{}{}
+		m.appointments[ids[i]] = struct{}{}
 	}
 }
 
-// ClearAppointment clears the "appointment" edge to the Appointment entity.
-func (m *DiagnosisMutation) ClearAppointment() {
-	m.clearedappointment = true
+// ClearAppointments clears the "appointments" edge to the Appointment entity.
+func (m *DiagnosisMutation) ClearAppointments() {
+	m.clearedappointments = true
 }
 
-// AppointmentCleared reports if the "appointment" edge to the Appointment entity was cleared.
-func (m *DiagnosisMutation) AppointmentCleared() bool {
-	return m.clearedappointment
+// AppointmentsCleared reports if the "appointments" edge to the Appointment entity was cleared.
+func (m *DiagnosisMutation) AppointmentsCleared() bool {
+	return m.clearedappointments
 }
 
-// RemoveAppointmentIDs removes the "appointment" edge to the Appointment entity by IDs.
+// RemoveAppointmentIDs removes the "appointments" edge to the Appointment entity by IDs.
 func (m *DiagnosisMutation) RemoveAppointmentIDs(ids ...uuid.UUID) {
-	if m.removedappointment == nil {
-		m.removedappointment = make(map[uuid.UUID]struct{})
+	if m.removedappointments == nil {
+		m.removedappointments = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.appointment, ids[i])
-		m.removedappointment[ids[i]] = struct{}{}
+		delete(m.appointments, ids[i])
+		m.removedappointments[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedAppointment returns the removed IDs of the "appointment" edge to the Appointment entity.
-func (m *DiagnosisMutation) RemovedAppointmentIDs() (ids []uuid.UUID) {
-	for id := range m.removedappointment {
+// RemovedAppointments returns the removed IDs of the "appointments" edge to the Appointment entity.
+func (m *DiagnosisMutation) RemovedAppointmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedappointments {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// AppointmentIDs returns the "appointment" edge IDs in the mutation.
-func (m *DiagnosisMutation) AppointmentIDs() (ids []uuid.UUID) {
-	for id := range m.appointment {
+// AppointmentsIDs returns the "appointments" edge IDs in the mutation.
+func (m *DiagnosisMutation) AppointmentsIDs() (ids []uuid.UUID) {
+	for id := range m.appointments {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetAppointment resets all changes to the "appointment" edge.
-func (m *DiagnosisMutation) ResetAppointment() {
-	m.appointment = nil
-	m.clearedappointment = false
-	m.removedappointment = nil
+// ResetAppointments resets all changes to the "appointments" edge.
+func (m *DiagnosisMutation) ResetAppointments() {
+	m.appointments = nil
+	m.clearedappointments = false
+	m.removedappointments = nil
 }
 
 // Where appends a list predicates to the DiagnosisMutation builder.
@@ -962,7 +962,7 @@ func (m *DiagnosisMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, diagnosis.FieldStatus)
 	}
-	if m.lastUpdated != nil {
+	if m.last_updated != nil {
 		fields = append(fields, diagnosis.FieldLastUpdated)
 	}
 	if m.code != nil {
@@ -1092,8 +1092,8 @@ func (m *DiagnosisMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DiagnosisMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.appointment != nil {
-		edges = append(edges, diagnosis.EdgeAppointment)
+	if m.appointments != nil {
+		edges = append(edges, diagnosis.EdgeAppointments)
 	}
 	return edges
 }
@@ -1102,9 +1102,9 @@ func (m *DiagnosisMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *DiagnosisMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case diagnosis.EdgeAppointment:
-		ids := make([]ent.Value, 0, len(m.appointment))
-		for id := range m.appointment {
+	case diagnosis.EdgeAppointments:
+		ids := make([]ent.Value, 0, len(m.appointments))
+		for id := range m.appointments {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1115,8 +1115,8 @@ func (m *DiagnosisMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DiagnosisMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removedappointment != nil {
-		edges = append(edges, diagnosis.EdgeAppointment)
+	if m.removedappointments != nil {
+		edges = append(edges, diagnosis.EdgeAppointments)
 	}
 	return edges
 }
@@ -1125,9 +1125,9 @@ func (m *DiagnosisMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *DiagnosisMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case diagnosis.EdgeAppointment:
-		ids := make([]ent.Value, 0, len(m.removedappointment))
-		for id := range m.removedappointment {
+	case diagnosis.EdgeAppointments:
+		ids := make([]ent.Value, 0, len(m.removedappointments))
+		for id := range m.removedappointments {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1138,8 +1138,8 @@ func (m *DiagnosisMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DiagnosisMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.clearedappointment {
-		edges = append(edges, diagnosis.EdgeAppointment)
+	if m.clearedappointments {
+		edges = append(edges, diagnosis.EdgeAppointments)
 	}
 	return edges
 }
@@ -1148,8 +1148,8 @@ func (m *DiagnosisMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *DiagnosisMutation) EdgeCleared(name string) bool {
 	switch name {
-	case diagnosis.EdgeAppointment:
-		return m.clearedappointment
+	case diagnosis.EdgeAppointments:
+		return m.clearedappointments
 	}
 	return false
 }
@@ -1166,8 +1166,8 @@ func (m *DiagnosisMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *DiagnosisMutation) ResetEdge(name string) error {
 	switch name {
-	case diagnosis.EdgeAppointment:
-		m.ResetAppointment()
+	case diagnosis.EdgeAppointments:
+		m.ResetAppointments()
 		return nil
 	}
 	return fmt.Errorf("unknown Diagnosis edge %s", name)
@@ -1186,6 +1186,10 @@ type FeedbackMutation struct {
 	responses        map[uuid.UUID]struct{}
 	removedresponses map[uuid.UUID]struct{}
 	clearedresponses bool
+	patient          *uuid.UUID
+	clearedpatient   bool
+	survey           *uuid.UUID
+	clearedsurvey    bool
 	done             bool
 	oldValue         func(context.Context) (*Feedback, error)
 	predicates       []predicate.Feedback
@@ -1457,6 +1461,84 @@ func (m *FeedbackMutation) ResetResponses() {
 	m.removedresponses = nil
 }
 
+// SetPatientID sets the "patient" edge to the Patient entity by id.
+func (m *FeedbackMutation) SetPatientID(id uuid.UUID) {
+	m.patient = &id
+}
+
+// ClearPatient clears the "patient" edge to the Patient entity.
+func (m *FeedbackMutation) ClearPatient() {
+	m.clearedpatient = true
+}
+
+// PatientCleared reports if the "patient" edge to the Patient entity was cleared.
+func (m *FeedbackMutation) PatientCleared() bool {
+	return m.clearedpatient
+}
+
+// PatientID returns the "patient" edge ID in the mutation.
+func (m *FeedbackMutation) PatientID() (id uuid.UUID, exists bool) {
+	if m.patient != nil {
+		return *m.patient, true
+	}
+	return
+}
+
+// PatientIDs returns the "patient" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PatientID instead. It exists only for internal usage by the builders.
+func (m *FeedbackMutation) PatientIDs() (ids []uuid.UUID) {
+	if id := m.patient; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPatient resets all changes to the "patient" edge.
+func (m *FeedbackMutation) ResetPatient() {
+	m.patient = nil
+	m.clearedpatient = false
+}
+
+// SetSurveyID sets the "survey" edge to the Survey entity by id.
+func (m *FeedbackMutation) SetSurveyID(id uuid.UUID) {
+	m.survey = &id
+}
+
+// ClearSurvey clears the "survey" edge to the Survey entity.
+func (m *FeedbackMutation) ClearSurvey() {
+	m.clearedsurvey = true
+}
+
+// SurveyCleared reports if the "survey" edge to the Survey entity was cleared.
+func (m *FeedbackMutation) SurveyCleared() bool {
+	return m.clearedsurvey
+}
+
+// SurveyID returns the "survey" edge ID in the mutation.
+func (m *FeedbackMutation) SurveyID() (id uuid.UUID, exists bool) {
+	if m.survey != nil {
+		return *m.survey, true
+	}
+	return
+}
+
+// SurveyIDs returns the "survey" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SurveyID instead. It exists only for internal usage by the builders.
+func (m *FeedbackMutation) SurveyIDs() (ids []uuid.UUID) {
+	if id := m.survey; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSurvey resets all changes to the "survey" edge.
+func (m *FeedbackMutation) ResetSurvey() {
+	m.survey = nil
+	m.clearedsurvey = false
+}
+
 // Where appends a list predicates to the FeedbackMutation builder.
 func (m *FeedbackMutation) Where(ps ...predicate.Feedback) {
 	m.predicates = append(m.predicates, ps...)
@@ -1624,9 +1706,15 @@ func (m *FeedbackMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FeedbackMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.responses != nil {
 		edges = append(edges, feedback.EdgeResponses)
+	}
+	if m.patient != nil {
+		edges = append(edges, feedback.EdgePatient)
+	}
+	if m.survey != nil {
+		edges = append(edges, feedback.EdgeSurvey)
 	}
 	return edges
 }
@@ -1641,13 +1729,21 @@ func (m *FeedbackMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case feedback.EdgePatient:
+		if id := m.patient; id != nil {
+			return []ent.Value{*id}
+		}
+	case feedback.EdgeSurvey:
+		if id := m.survey; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FeedbackMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.removedresponses != nil {
 		edges = append(edges, feedback.EdgeResponses)
 	}
@@ -1670,9 +1766,15 @@ func (m *FeedbackMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FeedbackMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.clearedresponses {
 		edges = append(edges, feedback.EdgeResponses)
+	}
+	if m.clearedpatient {
+		edges = append(edges, feedback.EdgePatient)
+	}
+	if m.clearedsurvey {
+		edges = append(edges, feedback.EdgeSurvey)
 	}
 	return edges
 }
@@ -1683,6 +1785,10 @@ func (m *FeedbackMutation) EdgeCleared(name string) bool {
 	switch name {
 	case feedback.EdgeResponses:
 		return m.clearedresponses
+	case feedback.EdgePatient:
+		return m.clearedpatient
+	case feedback.EdgeSurvey:
+		return m.clearedsurvey
 	}
 	return false
 }
@@ -1691,6 +1797,12 @@ func (m *FeedbackMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *FeedbackMutation) ClearEdge(name string) error {
 	switch name {
+	case feedback.EdgePatient:
+		m.ClearPatient()
+		return nil
+	case feedback.EdgeSurvey:
+		m.ClearSurvey()
+		return nil
 	}
 	return fmt.Errorf("unknown Feedback unique edge %s", name)
 }
@@ -1701,6 +1813,12 @@ func (m *FeedbackMutation) ResetEdge(name string) error {
 	switch name {
 	case feedback.EdgeResponses:
 		m.ResetResponses()
+		return nil
+	case feedback.EdgePatient:
+		m.ResetPatient()
+		return nil
+	case feedback.EdgeSurvey:
+		m.ResetSurvey()
 		return nil
 	}
 	return fmt.Errorf("unknown Feedback edge %s", name)
@@ -1723,6 +1841,9 @@ type PatientMutation struct {
 	appointments        map[uuid.UUID]struct{}
 	removedappointments map[uuid.UUID]struct{}
 	clearedappointments bool
+	feedbacks           map[uuid.UUID]struct{}
+	removedfeedbacks    map[uuid.UUID]struct{}
+	clearedfeedbacks    bool
 	done                bool
 	oldValue            func(context.Context) (*Patient, error)
 	predicates          []predicate.Patient
@@ -2137,6 +2258,60 @@ func (m *PatientMutation) ResetAppointments() {
 	m.removedappointments = nil
 }
 
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by ids.
+func (m *PatientMutation) AddFeedbackIDs(ids ...uuid.UUID) {
+	if m.feedbacks == nil {
+		m.feedbacks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.feedbacks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFeedbacks clears the "feedbacks" edge to the Feedback entity.
+func (m *PatientMutation) ClearFeedbacks() {
+	m.clearedfeedbacks = true
+}
+
+// FeedbacksCleared reports if the "feedbacks" edge to the Feedback entity was cleared.
+func (m *PatientMutation) FeedbacksCleared() bool {
+	return m.clearedfeedbacks
+}
+
+// RemoveFeedbackIDs removes the "feedbacks" edge to the Feedback entity by IDs.
+func (m *PatientMutation) RemoveFeedbackIDs(ids ...uuid.UUID) {
+	if m.removedfeedbacks == nil {
+		m.removedfeedbacks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.feedbacks, ids[i])
+		m.removedfeedbacks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFeedbacks returns the removed IDs of the "feedbacks" edge to the Feedback entity.
+func (m *PatientMutation) RemovedFeedbacksIDs() (ids []uuid.UUID) {
+	for id := range m.removedfeedbacks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FeedbacksIDs returns the "feedbacks" edge IDs in the mutation.
+func (m *PatientMutation) FeedbacksIDs() (ids []uuid.UUID) {
+	for id := range m.feedbacks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFeedbacks resets all changes to the "feedbacks" edge.
+func (m *PatientMutation) ResetFeedbacks() {
+	m.feedbacks = nil
+	m.clearedfeedbacks = false
+	m.removedfeedbacks = nil
+}
+
 // Where appends a list predicates to the PatientMutation builder.
 func (m *PatientMutation) Where(ps ...predicate.Patient) {
 	m.predicates = append(m.predicates, ps...)
@@ -2359,9 +2534,12 @@ func (m *PatientMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PatientMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.appointments != nil {
 		edges = append(edges, patient.EdgeAppointments)
+	}
+	if m.feedbacks != nil {
+		edges = append(edges, patient.EdgeFeedbacks)
 	}
 	return edges
 }
@@ -2376,15 +2554,24 @@ func (m *PatientMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case patient.EdgeFeedbacks:
+		ids := make([]ent.Value, 0, len(m.feedbacks))
+		for id := range m.feedbacks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PatientMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedappointments != nil {
 		edges = append(edges, patient.EdgeAppointments)
+	}
+	if m.removedfeedbacks != nil {
+		edges = append(edges, patient.EdgeFeedbacks)
 	}
 	return edges
 }
@@ -2399,15 +2586,24 @@ func (m *PatientMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case patient.EdgeFeedbacks:
+		ids := make([]ent.Value, 0, len(m.removedfeedbacks))
+		for id := range m.removedfeedbacks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PatientMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedappointments {
 		edges = append(edges, patient.EdgeAppointments)
+	}
+	if m.clearedfeedbacks {
+		edges = append(edges, patient.EdgeFeedbacks)
 	}
 	return edges
 }
@@ -2418,6 +2614,8 @@ func (m *PatientMutation) EdgeCleared(name string) bool {
 	switch name {
 	case patient.EdgeAppointments:
 		return m.clearedappointments
+	case patient.EdgeFeedbacks:
+		return m.clearedfeedbacks
 	}
 	return false
 }
@@ -2436,6 +2634,9 @@ func (m *PatientMutation) ResetEdge(name string) error {
 	switch name {
 	case patient.EdgeAppointments:
 		m.ResetAppointments()
+		return nil
+	case patient.EdgeFeedbacks:
+		m.ResetFeedbacks()
 		return nil
 	}
 	return fmt.Errorf("unknown Patient edge %s", name)
@@ -3130,6 +3331,8 @@ type PromptResponseMutation struct {
 	appendlabel_values []string
 	freeform_value     *string
 	clearedFields      map[string]struct{}
+	feedback           *uuid.UUID
+	clearedfeedback    bool
 	done               bool
 	oldValue           func(context.Context) (*PromptResponse, error)
 	predicates         []predicate.PromptResponse
@@ -3577,6 +3780,45 @@ func (m *PromptResponseMutation) ResetFreeformValue() {
 	delete(m.clearedFields, promptresponse.FieldFreeformValue)
 }
 
+// SetFeedbackID sets the "feedback" edge to the Feedback entity by id.
+func (m *PromptResponseMutation) SetFeedbackID(id uuid.UUID) {
+	m.feedback = &id
+}
+
+// ClearFeedback clears the "feedback" edge to the Feedback entity.
+func (m *PromptResponseMutation) ClearFeedback() {
+	m.clearedfeedback = true
+}
+
+// FeedbackCleared reports if the "feedback" edge to the Feedback entity was cleared.
+func (m *PromptResponseMutation) FeedbackCleared() bool {
+	return m.clearedfeedback
+}
+
+// FeedbackID returns the "feedback" edge ID in the mutation.
+func (m *PromptResponseMutation) FeedbackID() (id uuid.UUID, exists bool) {
+	if m.feedback != nil {
+		return *m.feedback, true
+	}
+	return
+}
+
+// FeedbackIDs returns the "feedback" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// FeedbackID instead. It exists only for internal usage by the builders.
+func (m *PromptResponseMutation) FeedbackIDs() (ids []uuid.UUID) {
+	if id := m.feedback; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFeedback resets all changes to the "feedback" edge.
+func (m *PromptResponseMutation) ResetFeedback() {
+	m.feedback = nil
+	m.clearedfeedback = false
+}
+
 // Where appends a list predicates to the PromptResponseMutation builder.
 func (m *PromptResponseMutation) Where(ps ...predicate.PromptResponse) {
 	m.predicates = append(m.predicates, ps...)
@@ -3855,19 +4097,28 @@ func (m *PromptResponseMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PromptResponseMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.feedback != nil {
+		edges = append(edges, promptresponse.EdgeFeedback)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *PromptResponseMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case promptresponse.EdgeFeedback:
+		if id := m.feedback; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PromptResponseMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -3879,25 +4130,42 @@ func (m *PromptResponseMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PromptResponseMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedfeedback {
+		edges = append(edges, promptresponse.EdgeFeedback)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *PromptResponseMutation) EdgeCleared(name string) bool {
+	switch name {
+	case promptresponse.EdgeFeedback:
+		return m.clearedfeedback
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *PromptResponseMutation) ClearEdge(name string) error {
+	switch name {
+	case promptresponse.EdgeFeedback:
+		m.ClearFeedback()
+		return nil
+	}
 	return fmt.Errorf("unknown PromptResponse unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *PromptResponseMutation) ResetEdge(name string) error {
+	switch name {
+	case promptresponse.EdgeFeedback:
+		m.ResetFeedback()
+		return nil
+	}
 	return fmt.Errorf("unknown PromptResponse edge %s", name)
 }
 
@@ -4329,21 +4597,24 @@ func (m *ProviderMutation) ResetEdge(name string) error {
 // SurveyMutation represents an operation that mutates the Survey nodes in the graph.
 type SurveyMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *uuid.UUID
-	title          *string
-	description    *string
-	status         *survey.Status
-	active_time    *time.Time
-	archive_time   *time.Time
-	clearedFields  map[string]struct{}
-	prompts        map[uuid.UUID]struct{}
-	removedprompts map[uuid.UUID]struct{}
-	clearedprompts bool
-	done           bool
-	oldValue       func(context.Context) (*Survey, error)
-	predicates     []predicate.Survey
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	title            *string
+	description      *string
+	status           *survey.Status
+	active_time      *time.Time
+	archive_time     *time.Time
+	clearedFields    map[string]struct{}
+	prompts          map[uuid.UUID]struct{}
+	removedprompts   map[uuid.UUID]struct{}
+	clearedprompts   bool
+	feedbacks        map[uuid.UUID]struct{}
+	removedfeedbacks map[uuid.UUID]struct{}
+	clearedfeedbacks bool
+	done             bool
+	oldValue         func(context.Context) (*Survey, error)
+	predicates       []predicate.Survey
 }
 
 var _ ent.Mutation = (*SurveyMutation)(nil)
@@ -4589,9 +4860,22 @@ func (m *SurveyMutation) OldActiveTime(ctx context.Context) (v time.Time, err er
 	return oldValue.ActiveTime, nil
 }
 
+// ClearActiveTime clears the value of the "active_time" field.
+func (m *SurveyMutation) ClearActiveTime() {
+	m.active_time = nil
+	m.clearedFields[survey.FieldActiveTime] = struct{}{}
+}
+
+// ActiveTimeCleared returns if the "active_time" field was cleared in this mutation.
+func (m *SurveyMutation) ActiveTimeCleared() bool {
+	_, ok := m.clearedFields[survey.FieldActiveTime]
+	return ok
+}
+
 // ResetActiveTime resets all changes to the "active_time" field.
 func (m *SurveyMutation) ResetActiveTime() {
 	m.active_time = nil
+	delete(m.clearedFields, survey.FieldActiveTime)
 }
 
 // SetArchiveTime sets the "archive_time" field.
@@ -4625,9 +4909,22 @@ func (m *SurveyMutation) OldArchiveTime(ctx context.Context) (v time.Time, err e
 	return oldValue.ArchiveTime, nil
 }
 
+// ClearArchiveTime clears the value of the "archive_time" field.
+func (m *SurveyMutation) ClearArchiveTime() {
+	m.archive_time = nil
+	m.clearedFields[survey.FieldArchiveTime] = struct{}{}
+}
+
+// ArchiveTimeCleared returns if the "archive_time" field was cleared in this mutation.
+func (m *SurveyMutation) ArchiveTimeCleared() bool {
+	_, ok := m.clearedFields[survey.FieldArchiveTime]
+	return ok
+}
+
 // ResetArchiveTime resets all changes to the "archive_time" field.
 func (m *SurveyMutation) ResetArchiveTime() {
 	m.archive_time = nil
+	delete(m.clearedFields, survey.FieldArchiveTime)
 }
 
 // AddPromptIDs adds the "prompts" edge to the Prompt entity by ids.
@@ -4682,6 +4979,60 @@ func (m *SurveyMutation) ResetPrompts() {
 	m.prompts = nil
 	m.clearedprompts = false
 	m.removedprompts = nil
+}
+
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by ids.
+func (m *SurveyMutation) AddFeedbackIDs(ids ...uuid.UUID) {
+	if m.feedbacks == nil {
+		m.feedbacks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.feedbacks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFeedbacks clears the "feedbacks" edge to the Feedback entity.
+func (m *SurveyMutation) ClearFeedbacks() {
+	m.clearedfeedbacks = true
+}
+
+// FeedbacksCleared reports if the "feedbacks" edge to the Feedback entity was cleared.
+func (m *SurveyMutation) FeedbacksCleared() bool {
+	return m.clearedfeedbacks
+}
+
+// RemoveFeedbackIDs removes the "feedbacks" edge to the Feedback entity by IDs.
+func (m *SurveyMutation) RemoveFeedbackIDs(ids ...uuid.UUID) {
+	if m.removedfeedbacks == nil {
+		m.removedfeedbacks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.feedbacks, ids[i])
+		m.removedfeedbacks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFeedbacks returns the removed IDs of the "feedbacks" edge to the Feedback entity.
+func (m *SurveyMutation) RemovedFeedbacksIDs() (ids []uuid.UUID) {
+	for id := range m.removedfeedbacks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FeedbacksIDs returns the "feedbacks" edge IDs in the mutation.
+func (m *SurveyMutation) FeedbacksIDs() (ids []uuid.UUID) {
+	for id := range m.feedbacks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFeedbacks resets all changes to the "feedbacks" edge.
+func (m *SurveyMutation) ResetFeedbacks() {
+	m.feedbacks = nil
+	m.clearedfeedbacks = false
+	m.removedfeedbacks = nil
 }
 
 // Where appends a list predicates to the SurveyMutation builder.
@@ -4844,7 +5195,14 @@ func (m *SurveyMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *SurveyMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(survey.FieldActiveTime) {
+		fields = append(fields, survey.FieldActiveTime)
+	}
+	if m.FieldCleared(survey.FieldArchiveTime) {
+		fields = append(fields, survey.FieldArchiveTime)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -4857,6 +5215,14 @@ func (m *SurveyMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *SurveyMutation) ClearField(name string) error {
+	switch name {
+	case survey.FieldActiveTime:
+		m.ClearActiveTime()
+		return nil
+	case survey.FieldArchiveTime:
+		m.ClearArchiveTime()
+		return nil
+	}
 	return fmt.Errorf("unknown Survey nullable field %s", name)
 }
 
@@ -4885,9 +5251,12 @@ func (m *SurveyMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SurveyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.prompts != nil {
 		edges = append(edges, survey.EdgePrompts)
+	}
+	if m.feedbacks != nil {
+		edges = append(edges, survey.EdgeFeedbacks)
 	}
 	return edges
 }
@@ -4902,15 +5271,24 @@ func (m *SurveyMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case survey.EdgeFeedbacks:
+		ids := make([]ent.Value, 0, len(m.feedbacks))
+		for id := range m.feedbacks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SurveyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedprompts != nil {
 		edges = append(edges, survey.EdgePrompts)
+	}
+	if m.removedfeedbacks != nil {
+		edges = append(edges, survey.EdgeFeedbacks)
 	}
 	return edges
 }
@@ -4925,15 +5303,24 @@ func (m *SurveyMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case survey.EdgeFeedbacks:
+		ids := make([]ent.Value, 0, len(m.removedfeedbacks))
+		for id := range m.removedfeedbacks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SurveyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedprompts {
 		edges = append(edges, survey.EdgePrompts)
+	}
+	if m.clearedfeedbacks {
+		edges = append(edges, survey.EdgeFeedbacks)
 	}
 	return edges
 }
@@ -4944,6 +5331,8 @@ func (m *SurveyMutation) EdgeCleared(name string) bool {
 	switch name {
 	case survey.EdgePrompts:
 		return m.clearedprompts
+	case survey.EdgeFeedbacks:
+		return m.clearedfeedbacks
 	}
 	return false
 }
@@ -4962,6 +5351,9 @@ func (m *SurveyMutation) ResetEdge(name string) error {
 	switch name {
 	case survey.EdgePrompts:
 		m.ResetPrompts()
+		return nil
+	case survey.EdgeFeedbacks:
+		m.ResetFeedbacks()
 		return nil
 	}
 	return fmt.Errorf("unknown Survey edge %s", name)

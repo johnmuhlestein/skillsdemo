@@ -29,13 +29,13 @@ func (dc *DiagnosisCreate) SetStatus(s string) *DiagnosisCreate {
 	return dc
 }
 
-// SetLastUpdated sets the "lastUpdated" field.
+// SetLastUpdated sets the "last_updated" field.
 func (dc *DiagnosisCreate) SetLastUpdated(t time.Time) *DiagnosisCreate {
 	dc.mutation.SetLastUpdated(t)
 	return dc
 }
 
-// SetNillableLastUpdated sets the "lastUpdated" field if the given value is not nil.
+// SetNillableLastUpdated sets the "last_updated" field if the given value is not nil.
 func (dc *DiagnosisCreate) SetNillableLastUpdated(t *time.Time) *DiagnosisCreate {
 	if t != nil {
 		dc.SetLastUpdated(*t)
@@ -63,14 +63,14 @@ func (dc *DiagnosisCreate) SetNillableID(u *uuid.UUID) *DiagnosisCreate {
 	return dc
 }
 
-// AddAppointmentIDs adds the "appointment" edge to the Appointment entity by IDs.
+// AddAppointmentIDs adds the "appointments" edge to the Appointment entity by IDs.
 func (dc *DiagnosisCreate) AddAppointmentIDs(ids ...uuid.UUID) *DiagnosisCreate {
 	dc.mutation.AddAppointmentIDs(ids...)
 	return dc
 }
 
-// AddAppointment adds the "appointment" edges to the Appointment entity.
-func (dc *DiagnosisCreate) AddAppointment(a ...*Appointment) *DiagnosisCreate {
+// AddAppointments adds the "appointments" edges to the Appointment entity.
+func (dc *DiagnosisCreate) AddAppointments(a ...*Appointment) *DiagnosisCreate {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
@@ -129,7 +129,7 @@ func (dc *DiagnosisCreate) check() error {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Diagnosis.status"`)}
 	}
 	if _, ok := dc.mutation.LastUpdated(); !ok {
-		return &ValidationError{Name: "lastUpdated", err: errors.New(`ent: missing required field "Diagnosis.lastUpdated"`)}
+		return &ValidationError{Name: "last_updated", err: errors.New(`ent: missing required field "Diagnosis.last_updated"`)}
 	}
 	if _, ok := dc.mutation.Code(); !ok {
 		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "Diagnosis.code"`)}
@@ -181,12 +181,12 @@ func (dc *DiagnosisCreate) createSpec() (*Diagnosis, *sqlgraph.CreateSpec) {
 		_spec.SetField(diagnosis.FieldCode, field.TypeJSON, value)
 		_node.Code = value
 	}
-	if nodes := dc.mutation.AppointmentIDs(); len(nodes) > 0 {
+	if nodes := dc.mutation.AppointmentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   diagnosis.AppointmentTable,
-			Columns: diagnosis.AppointmentPrimaryKey,
+			Table:   diagnosis.AppointmentsTable,
+			Columns: diagnosis.AppointmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),

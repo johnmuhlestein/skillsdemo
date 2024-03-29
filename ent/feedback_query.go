@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"math"
 	"skillsdemo/ent/feedback"
+	"skillsdemo/ent/patient"
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/promptresponse"
+	"skillsdemo/ent/survey"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +27,9 @@ type FeedbackQuery struct {
 	inters        []Interceptor
 	predicates    []predicate.Feedback
 	withResponses *PromptResponseQuery
+	withPatient   *PatientQuery
+	withSurvey    *SurveyQuery
+	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +81,50 @@ func (fq *FeedbackQuery) QueryResponses() *PromptResponseQuery {
 			sqlgraph.From(feedback.Table, feedback.FieldID, selector),
 			sqlgraph.To(promptresponse.Table, promptresponse.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, feedback.ResponsesTable, feedback.ResponsesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPatient chains the current query on the "patient" edge.
+func (fq *FeedbackQuery) QueryPatient() *PatientQuery {
+	query := (&PatientClient{config: fq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feedback.Table, feedback.FieldID, selector),
+			sqlgraph.To(patient.Table, patient.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, feedback.PatientTable, feedback.PatientColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySurvey chains the current query on the "survey" edge.
+func (fq *FeedbackQuery) QuerySurvey() *SurveyQuery {
+	query := (&SurveyClient{config: fq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feedback.Table, feedback.FieldID, selector),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, feedback.SurveyTable, feedback.SurveyColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +325,8 @@ func (fq *FeedbackQuery) Clone() *FeedbackQuery {
 		inters:        append([]Interceptor{}, fq.inters...),
 		predicates:    append([]predicate.Feedback{}, fq.predicates...),
 		withResponses: fq.withResponses.Clone(),
+		withPatient:   fq.withPatient.Clone(),
+		withSurvey:    fq.withSurvey.Clone(),
 		// clone intermediate query.
 		sql:  fq.sql.Clone(),
 		path: fq.path,
@@ -290,6 +341,28 @@ func (fq *FeedbackQuery) WithResponses(opts ...func(*PromptResponseQuery)) *Feed
 		opt(query)
 	}
 	fq.withResponses = query
+	return fq
+}
+
+// WithPatient tells the query-builder to eager-load the nodes that are connected to
+// the "patient" edge. The optional arguments are used to configure the query builder of the edge.
+func (fq *FeedbackQuery) WithPatient(opts ...func(*PatientQuery)) *FeedbackQuery {
+	query := (&PatientClient{config: fq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withPatient = query
+	return fq
+}
+
+// WithSurvey tells the query-builder to eager-load the nodes that are connected to
+// the "survey" edge. The optional arguments are used to configure the query builder of the edge.
+func (fq *FeedbackQuery) WithSurvey(opts ...func(*SurveyQuery)) *FeedbackQuery {
+	query := (&SurveyClient{config: fq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withSurvey = query
 	return fq
 }
 
@@ -370,11 +443,20 @@ func (fq *FeedbackQuery) prepareQuery(ctx context.Context) error {
 func (fq *FeedbackQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Feedback, error) {
 	var (
 		nodes       = []*Feedback{}
+		withFKs     = fq.withFKs
 		_spec       = fq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
 			fq.withResponses != nil,
+			fq.withPatient != nil,
+			fq.withSurvey != nil,
 		}
 	)
+	if fq.withPatient != nil || fq.withSurvey != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, feedback.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Feedback).scanValues(nil, columns)
 	}
@@ -397,6 +479,18 @@ func (fq *FeedbackQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Fee
 		if err := fq.loadResponses(ctx, query, nodes,
 			func(n *Feedback) { n.Edges.Responses = []*PromptResponse{} },
 			func(n *Feedback, e *PromptResponse) { n.Edges.Responses = append(n.Edges.Responses, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := fq.withPatient; query != nil {
+		if err := fq.loadPatient(ctx, query, nodes, nil,
+			func(n *Feedback, e *Patient) { n.Edges.Patient = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := fq.withSurvey; query != nil {
+		if err := fq.loadSurvey(ctx, query, nodes, nil,
+			func(n *Feedback, e *Survey) { n.Edges.Survey = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -431,6 +525,70 @@ func (fq *FeedbackQuery) loadResponses(ctx context.Context, query *PromptRespons
 			return fmt.Errorf(`unexpected referenced foreign-key "feedback_responses" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (fq *FeedbackQuery) loadPatient(ctx context.Context, query *PatientQuery, nodes []*Feedback, init func(*Feedback), assign func(*Feedback, *Patient)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Feedback)
+	for i := range nodes {
+		if nodes[i].patient_feedbacks == nil {
+			continue
+		}
+		fk := *nodes[i].patient_feedbacks
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(patient.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "patient_feedbacks" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (fq *FeedbackQuery) loadSurvey(ctx context.Context, query *SurveyQuery, nodes []*Feedback, init func(*Feedback), assign func(*Feedback, *Survey)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Feedback)
+	for i := range nodes {
+		if nodes[i].survey_feedbacks == nil {
+			continue
+		}
+		fk := *nodes[i].survey_feedbacks
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(survey.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "survey_feedbacks" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

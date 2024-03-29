@@ -19,8 +19,8 @@ func (Survey) Fields() []ent.Field {
 		field.String("title"),
 		field.String("description"),
 		field.Enum("status").Values("unpublished","active","archived").Default("unpublished"),
-		field.Time("active_time"),
-		field.Time("archive_time"),
+		field.Time("active_time").Optional(),
+		field.Time("archive_time").Optional(),
 	}
 }
 
@@ -28,5 +28,6 @@ func (Survey) Fields() []ent.Field {
 func (Survey) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("prompts", Prompt.Type),
+		edge.To("feedbacks", Feedback.Type),
 	}
 }

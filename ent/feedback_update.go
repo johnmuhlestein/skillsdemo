@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"skillsdemo/ent/feedback"
+	"skillsdemo/ent/patient"
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/promptresponse"
+	"skillsdemo/ent/survey"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -87,6 +89,44 @@ func (fu *FeedbackUpdate) AddResponses(p ...*PromptResponse) *FeedbackUpdate {
 	return fu.AddResponseIDs(ids...)
 }
 
+// SetPatientID sets the "patient" edge to the Patient entity by ID.
+func (fu *FeedbackUpdate) SetPatientID(id uuid.UUID) *FeedbackUpdate {
+	fu.mutation.SetPatientID(id)
+	return fu
+}
+
+// SetNillablePatientID sets the "patient" edge to the Patient entity by ID if the given value is not nil.
+func (fu *FeedbackUpdate) SetNillablePatientID(id *uuid.UUID) *FeedbackUpdate {
+	if id != nil {
+		fu = fu.SetPatientID(*id)
+	}
+	return fu
+}
+
+// SetPatient sets the "patient" edge to the Patient entity.
+func (fu *FeedbackUpdate) SetPatient(p *Patient) *FeedbackUpdate {
+	return fu.SetPatientID(p.ID)
+}
+
+// SetSurveyID sets the "survey" edge to the Survey entity by ID.
+func (fu *FeedbackUpdate) SetSurveyID(id uuid.UUID) *FeedbackUpdate {
+	fu.mutation.SetSurveyID(id)
+	return fu
+}
+
+// SetNillableSurveyID sets the "survey" edge to the Survey entity by ID if the given value is not nil.
+func (fu *FeedbackUpdate) SetNillableSurveyID(id *uuid.UUID) *FeedbackUpdate {
+	if id != nil {
+		fu = fu.SetSurveyID(*id)
+	}
+	return fu
+}
+
+// SetSurvey sets the "survey" edge to the Survey entity.
+func (fu *FeedbackUpdate) SetSurvey(s *Survey) *FeedbackUpdate {
+	return fu.SetSurveyID(s.ID)
+}
+
 // Mutation returns the FeedbackMutation object of the builder.
 func (fu *FeedbackUpdate) Mutation() *FeedbackMutation {
 	return fu.mutation
@@ -111,6 +151,18 @@ func (fu *FeedbackUpdate) RemoveResponses(p ...*PromptResponse) *FeedbackUpdate 
 		ids[i] = p[i].ID
 	}
 	return fu.RemoveResponseIDs(ids...)
+}
+
+// ClearPatient clears the "patient" edge to the Patient entity.
+func (fu *FeedbackUpdate) ClearPatient() *FeedbackUpdate {
+	fu.mutation.ClearPatient()
+	return fu
+}
+
+// ClearSurvey clears the "survey" edge to the Survey entity.
+func (fu *FeedbackUpdate) ClearSurvey() *FeedbackUpdate {
+	fu.mutation.ClearSurvey()
+	return fu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -203,6 +255,64 @@ func (fu *FeedbackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if fu.mutation.PatientCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   feedback.PatientTable,
+			Columns: []string{feedback.PatientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.PatientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   feedback.PatientTable,
+			Columns: []string{feedback.PatientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.SurveyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   feedback.SurveyTable,
+			Columns: []string{feedback.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   feedback.SurveyTable,
+			Columns: []string{feedback.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{feedback.Label}
@@ -280,6 +390,44 @@ func (fuo *FeedbackUpdateOne) AddResponses(p ...*PromptResponse) *FeedbackUpdate
 	return fuo.AddResponseIDs(ids...)
 }
 
+// SetPatientID sets the "patient" edge to the Patient entity by ID.
+func (fuo *FeedbackUpdateOne) SetPatientID(id uuid.UUID) *FeedbackUpdateOne {
+	fuo.mutation.SetPatientID(id)
+	return fuo
+}
+
+// SetNillablePatientID sets the "patient" edge to the Patient entity by ID if the given value is not nil.
+func (fuo *FeedbackUpdateOne) SetNillablePatientID(id *uuid.UUID) *FeedbackUpdateOne {
+	if id != nil {
+		fuo = fuo.SetPatientID(*id)
+	}
+	return fuo
+}
+
+// SetPatient sets the "patient" edge to the Patient entity.
+func (fuo *FeedbackUpdateOne) SetPatient(p *Patient) *FeedbackUpdateOne {
+	return fuo.SetPatientID(p.ID)
+}
+
+// SetSurveyID sets the "survey" edge to the Survey entity by ID.
+func (fuo *FeedbackUpdateOne) SetSurveyID(id uuid.UUID) *FeedbackUpdateOne {
+	fuo.mutation.SetSurveyID(id)
+	return fuo
+}
+
+// SetNillableSurveyID sets the "survey" edge to the Survey entity by ID if the given value is not nil.
+func (fuo *FeedbackUpdateOne) SetNillableSurveyID(id *uuid.UUID) *FeedbackUpdateOne {
+	if id != nil {
+		fuo = fuo.SetSurveyID(*id)
+	}
+	return fuo
+}
+
+// SetSurvey sets the "survey" edge to the Survey entity.
+func (fuo *FeedbackUpdateOne) SetSurvey(s *Survey) *FeedbackUpdateOne {
+	return fuo.SetSurveyID(s.ID)
+}
+
 // Mutation returns the FeedbackMutation object of the builder.
 func (fuo *FeedbackUpdateOne) Mutation() *FeedbackMutation {
 	return fuo.mutation
@@ -304,6 +452,18 @@ func (fuo *FeedbackUpdateOne) RemoveResponses(p ...*PromptResponse) *FeedbackUpd
 		ids[i] = p[i].ID
 	}
 	return fuo.RemoveResponseIDs(ids...)
+}
+
+// ClearPatient clears the "patient" edge to the Patient entity.
+func (fuo *FeedbackUpdateOne) ClearPatient() *FeedbackUpdateOne {
+	fuo.mutation.ClearPatient()
+	return fuo
+}
+
+// ClearSurvey clears the "survey" edge to the Survey entity.
+func (fuo *FeedbackUpdateOne) ClearSurvey() *FeedbackUpdateOne {
+	fuo.mutation.ClearSurvey()
+	return fuo
 }
 
 // Where appends a list predicates to the FeedbackUpdate builder.
@@ -419,6 +579,64 @@ func (fuo *FeedbackUpdateOne) sqlSave(ctx context.Context) (_node *Feedback, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(promptresponse.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.PatientCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   feedback.PatientTable,
+			Columns: []string{feedback.PatientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.PatientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   feedback.PatientTable,
+			Columns: []string{feedback.PatientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.SurveyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   feedback.SurveyTable,
+			Columns: []string{feedback.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   feedback.SurveyTable,
+			Columns: []string{feedback.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

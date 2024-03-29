@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"skillsdemo/ent/appointment"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/patient"
 	"skillsdemo/ent/predicate"
 
@@ -25,6 +26,7 @@ type PatientQuery struct {
 	inters           []Interceptor
 	predicates       []predicate.Patient
 	withAppointments *AppointmentQuery
+	withFeedbacks    *FeedbackQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (pq *PatientQuery) QueryAppointments() *AppointmentQuery {
 			sqlgraph.From(patient.Table, patient.FieldID, selector),
 			sqlgraph.To(appointment.Table, appointment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, patient.AppointmentsTable, patient.AppointmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFeedbacks chains the current query on the "feedbacks" edge.
+func (pq *PatientQuery) QueryFeedbacks() *FeedbackQuery {
+	query := (&FeedbackClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(patient.Table, patient.FieldID, selector),
+			sqlgraph.To(feedback.Table, feedback.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, patient.FeedbacksTable, patient.FeedbacksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +300,7 @@ func (pq *PatientQuery) Clone() *PatientQuery {
 		inters:           append([]Interceptor{}, pq.inters...),
 		predicates:       append([]predicate.Patient{}, pq.predicates...),
 		withAppointments: pq.withAppointments.Clone(),
+		withFeedbacks:    pq.withFeedbacks.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -290,6 +315,17 @@ func (pq *PatientQuery) WithAppointments(opts ...func(*AppointmentQuery)) *Patie
 		opt(query)
 	}
 	pq.withAppointments = query
+	return pq
+}
+
+// WithFeedbacks tells the query-builder to eager-load the nodes that are connected to
+// the "feedbacks" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PatientQuery) WithFeedbacks(opts ...func(*FeedbackQuery)) *PatientQuery {
+	query := (&FeedbackClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withFeedbacks = query
 	return pq
 }
 
@@ -371,8 +407,9 @@ func (pq *PatientQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pati
 	var (
 		nodes       = []*Patient{}
 		_spec       = pq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			pq.withAppointments != nil,
+			pq.withFeedbacks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +434,13 @@ func (pq *PatientQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pati
 		if err := pq.loadAppointments(ctx, query, nodes,
 			func(n *Patient) { n.Edges.Appointments = []*Appointment{} },
 			func(n *Patient, e *Appointment) { n.Edges.Appointments = append(n.Edges.Appointments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withFeedbacks; query != nil {
+		if err := pq.loadFeedbacks(ctx, query, nodes,
+			func(n *Patient) { n.Edges.Feedbacks = []*Feedback{} },
+			func(n *Patient, e *Feedback) { n.Edges.Feedbacks = append(n.Edges.Feedbacks, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -429,6 +473,37 @@ func (pq *PatientQuery) loadAppointments(ctx context.Context, query *Appointment
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "patient_appointments" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *PatientQuery) loadFeedbacks(ctx context.Context, query *FeedbackQuery, nodes []*Patient, init func(*Patient), assign func(*Patient, *Feedback)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Patient)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Feedback(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(patient.FeedbacksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.patient_feedbacks
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "patient_feedbacks" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "patient_feedbacks" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

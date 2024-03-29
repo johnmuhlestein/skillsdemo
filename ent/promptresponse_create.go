@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/promptresponse"
 	"skillsdemo/ent/schema"
 
@@ -101,6 +102,25 @@ func (prc *PromptResponseCreate) SetNillableID(u *uuid.UUID) *PromptResponseCrea
 		prc.SetID(*u)
 	}
 	return prc
+}
+
+// SetFeedbackID sets the "feedback" edge to the Feedback entity by ID.
+func (prc *PromptResponseCreate) SetFeedbackID(id uuid.UUID) *PromptResponseCreate {
+	prc.mutation.SetFeedbackID(id)
+	return prc
+}
+
+// SetNillableFeedbackID sets the "feedback" edge to the Feedback entity by ID if the given value is not nil.
+func (prc *PromptResponseCreate) SetNillableFeedbackID(id *uuid.UUID) *PromptResponseCreate {
+	if id != nil {
+		prc = prc.SetFeedbackID(*id)
+	}
+	return prc
+}
+
+// SetFeedback sets the "feedback" edge to the Feedback entity.
+func (prc *PromptResponseCreate) SetFeedback(f *Feedback) *PromptResponseCreate {
+	return prc.SetFeedbackID(f.ID)
 }
 
 // Mutation returns the PromptResponseMutation object of the builder.
@@ -212,6 +232,23 @@ func (prc *PromptResponseCreate) createSpec() (*PromptResponse, *sqlgraph.Create
 	if value, ok := prc.mutation.FreeformValue(); ok {
 		_spec.SetField(promptresponse.FieldFreeformValue, field.TypeString, value)
 		_node.FreeformValue = value
+	}
+	if nodes := prc.mutation.FeedbackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   promptresponse.FeedbackTable,
+			Columns: []string{promptresponse.FeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.feedback_responses = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

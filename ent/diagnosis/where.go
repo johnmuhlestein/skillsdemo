@@ -61,7 +61,7 @@ func Status(v string) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldEQ(FieldStatus, v))
 }
 
-// LastUpdated applies equality check predicate on the "lastUpdated" field. It's identical to LastUpdatedEQ.
+// LastUpdated applies equality check predicate on the "last_updated" field. It's identical to LastUpdatedEQ.
 func LastUpdated(v time.Time) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldEQ(FieldLastUpdated, v))
 }
@@ -131,61 +131,61 @@ func StatusContainsFold(v string) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldContainsFold(FieldStatus, v))
 }
 
-// LastUpdatedEQ applies the EQ predicate on the "lastUpdated" field.
+// LastUpdatedEQ applies the EQ predicate on the "last_updated" field.
 func LastUpdatedEQ(v time.Time) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldEQ(FieldLastUpdated, v))
 }
 
-// LastUpdatedNEQ applies the NEQ predicate on the "lastUpdated" field.
+// LastUpdatedNEQ applies the NEQ predicate on the "last_updated" field.
 func LastUpdatedNEQ(v time.Time) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldNEQ(FieldLastUpdated, v))
 }
 
-// LastUpdatedIn applies the In predicate on the "lastUpdated" field.
+// LastUpdatedIn applies the In predicate on the "last_updated" field.
 func LastUpdatedIn(vs ...time.Time) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldIn(FieldLastUpdated, vs...))
 }
 
-// LastUpdatedNotIn applies the NotIn predicate on the "lastUpdated" field.
+// LastUpdatedNotIn applies the NotIn predicate on the "last_updated" field.
 func LastUpdatedNotIn(vs ...time.Time) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldNotIn(FieldLastUpdated, vs...))
 }
 
-// LastUpdatedGT applies the GT predicate on the "lastUpdated" field.
+// LastUpdatedGT applies the GT predicate on the "last_updated" field.
 func LastUpdatedGT(v time.Time) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldGT(FieldLastUpdated, v))
 }
 
-// LastUpdatedGTE applies the GTE predicate on the "lastUpdated" field.
+// LastUpdatedGTE applies the GTE predicate on the "last_updated" field.
 func LastUpdatedGTE(v time.Time) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldGTE(FieldLastUpdated, v))
 }
 
-// LastUpdatedLT applies the LT predicate on the "lastUpdated" field.
+// LastUpdatedLT applies the LT predicate on the "last_updated" field.
 func LastUpdatedLT(v time.Time) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldLT(FieldLastUpdated, v))
 }
 
-// LastUpdatedLTE applies the LTE predicate on the "lastUpdated" field.
+// LastUpdatedLTE applies the LTE predicate on the "last_updated" field.
 func LastUpdatedLTE(v time.Time) predicate.Diagnosis {
 	return predicate.Diagnosis(sql.FieldLTE(FieldLastUpdated, v))
 }
 
-// HasAppointment applies the HasEdge predicate on the "appointment" edge.
-func HasAppointment() predicate.Diagnosis {
+// HasAppointments applies the HasEdge predicate on the "appointments" edge.
+func HasAppointments() predicate.Diagnosis {
 	return predicate.Diagnosis(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, AppointmentTable, AppointmentPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, AppointmentsTable, AppointmentsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasAppointmentWith applies the HasEdge predicate on the "appointment" edge with a given conditions (other predicates).
-func HasAppointmentWith(preds ...predicate.Appointment) predicate.Diagnosis {
+// HasAppointmentsWith applies the HasEdge predicate on the "appointments" edge with a given conditions (other predicates).
+func HasAppointmentsWith(preds ...predicate.Appointment) predicate.Diagnosis {
 	return predicate.Diagnosis(func(s *sql.Selector) {
-		step := newAppointmentStep()
+		step := newAppointmentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

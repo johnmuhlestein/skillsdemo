@@ -266,6 +266,16 @@ func ActiveTimeLTE(v time.Time) predicate.Survey {
 	return predicate.Survey(sql.FieldLTE(FieldActiveTime, v))
 }
 
+// ActiveTimeIsNil applies the IsNil predicate on the "active_time" field.
+func ActiveTimeIsNil() predicate.Survey {
+	return predicate.Survey(sql.FieldIsNull(FieldActiveTime))
+}
+
+// ActiveTimeNotNil applies the NotNil predicate on the "active_time" field.
+func ActiveTimeNotNil() predicate.Survey {
+	return predicate.Survey(sql.FieldNotNull(FieldActiveTime))
+}
+
 // ArchiveTimeEQ applies the EQ predicate on the "archive_time" field.
 func ArchiveTimeEQ(v time.Time) predicate.Survey {
 	return predicate.Survey(sql.FieldEQ(FieldArchiveTime, v))
@@ -306,6 +316,16 @@ func ArchiveTimeLTE(v time.Time) predicate.Survey {
 	return predicate.Survey(sql.FieldLTE(FieldArchiveTime, v))
 }
 
+// ArchiveTimeIsNil applies the IsNil predicate on the "archive_time" field.
+func ArchiveTimeIsNil() predicate.Survey {
+	return predicate.Survey(sql.FieldIsNull(FieldArchiveTime))
+}
+
+// ArchiveTimeNotNil applies the NotNil predicate on the "archive_time" field.
+func ArchiveTimeNotNil() predicate.Survey {
+	return predicate.Survey(sql.FieldNotNull(FieldArchiveTime))
+}
+
 // HasPrompts applies the HasEdge predicate on the "prompts" edge.
 func HasPrompts() predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
@@ -321,6 +341,29 @@ func HasPrompts() predicate.Survey {
 func HasPromptsWith(preds ...predicate.Prompt) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		step := newPromptsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFeedbacks applies the HasEdge predicate on the "feedbacks" edge.
+func HasFeedbacks() predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FeedbacksTable, FeedbacksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFeedbacksWith applies the HasEdge predicate on the "feedbacks" edge with a given conditions (other predicates).
+func HasFeedbacksWith(preds ...predicate.Feedback) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		step := newFeedbacksStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

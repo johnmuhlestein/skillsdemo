@@ -27,6 +27,6 @@ func init() {
     // Create an ent.Driver from `db`.
     drv := entsql.OpenDB(dialect.Postgres, db)
 	Client := ent.NewClient(ent.Driver(drv))
-	defer Client.Close()
+//	defer Client.Close()
     EntClient =  Client
 }

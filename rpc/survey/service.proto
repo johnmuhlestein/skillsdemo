@@ -37,7 +37,7 @@ message MeasureEnum {
 }
 
 message MeasureFlags {
-    string labels = 1;
+    string label = 1;
 }
 
 message SurveyResp {
@@ -88,11 +88,9 @@ message Prompt {
 
 message Measure {
     MeasureType type = 1;
-    oneof measure_oneof {
-        MeasureRange range = 10;
-        MeasureBoolean boolean = 11;
-        MeasureEnum enumeration = 12;
-        MeasureFlags flags = 13;
-    }
+    MeasureRange range = 10;
+    MeasureBoolean boolean = 11;
+    repeated MeasureEnum enumeration = 12;
+    repeated MeasureFlags flags = 13;
 
 }

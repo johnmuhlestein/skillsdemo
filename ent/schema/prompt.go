@@ -31,7 +31,7 @@ func (Prompt) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Int("sort_order").Positive(),
-		field.String("title").Unique(),
+		field.String("title"),
 		field.String("description").Optional(),
 		field.JSON("response_type", Measure{}),
 		field.Bool("additional_feedback").Default(false),

@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"skillsdemo/ent/feedback"
+	"skillsdemo/ent/patient"
 	"skillsdemo/ent/promptresponse"
+	"skillsdemo/ent/survey"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -67,6 +69,44 @@ func (fc *FeedbackCreate) AddResponses(p ...*PromptResponse) *FeedbackCreate {
 		ids[i] = p[i].ID
 	}
 	return fc.AddResponseIDs(ids...)
+}
+
+// SetPatientID sets the "patient" edge to the Patient entity by ID.
+func (fc *FeedbackCreate) SetPatientID(id uuid.UUID) *FeedbackCreate {
+	fc.mutation.SetPatientID(id)
+	return fc
+}
+
+// SetNillablePatientID sets the "patient" edge to the Patient entity by ID if the given value is not nil.
+func (fc *FeedbackCreate) SetNillablePatientID(id *uuid.UUID) *FeedbackCreate {
+	if id != nil {
+		fc = fc.SetPatientID(*id)
+	}
+	return fc
+}
+
+// SetPatient sets the "patient" edge to the Patient entity.
+func (fc *FeedbackCreate) SetPatient(p *Patient) *FeedbackCreate {
+	return fc.SetPatientID(p.ID)
+}
+
+// SetSurveyID sets the "survey" edge to the Survey entity by ID.
+func (fc *FeedbackCreate) SetSurveyID(id uuid.UUID) *FeedbackCreate {
+	fc.mutation.SetSurveyID(id)
+	return fc
+}
+
+// SetNillableSurveyID sets the "survey" edge to the Survey entity by ID if the given value is not nil.
+func (fc *FeedbackCreate) SetNillableSurveyID(id *uuid.UUID) *FeedbackCreate {
+	if id != nil {
+		fc = fc.SetSurveyID(*id)
+	}
+	return fc
+}
+
+// SetSurvey sets the "survey" edge to the Survey entity.
+func (fc *FeedbackCreate) SetSurvey(s *Survey) *FeedbackCreate {
+	return fc.SetSurveyID(s.ID)
 }
 
 // Mutation returns the FeedbackMutation object of the builder.
@@ -182,6 +222,40 @@ func (fc *FeedbackCreate) createSpec() (*Feedback, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.PatientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   feedback.PatientTable,
+			Columns: []string{feedback.PatientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.patient_feedbacks = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   feedback.SurveyTable,
+			Columns: []string{feedback.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.survey_feedbacks = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

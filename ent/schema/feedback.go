@@ -26,5 +26,7 @@ func (Feedback) Fields() []ent.Field {
 func (Feedback) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("responses", PromptResponse.Type),
+		edge.From("patient", Patient.Type).Ref("feedbacks").Unique(),
+		edge.From("survey", Survey.Type).Ref("feedbacks").Unique(),
 	}
 }

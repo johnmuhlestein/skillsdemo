@@ -554,15 +554,15 @@ func (c *DiagnosisClient) GetX(ctx context.Context, id uuid.UUID) *Diagnosis {
 	return obj
 }
 
-// QueryAppointment queries the appointment edge of a Diagnosis.
-func (c *DiagnosisClient) QueryAppointment(d *Diagnosis) *AppointmentQuery {
+// QueryAppointments queries the appointments edge of a Diagnosis.
+func (c *DiagnosisClient) QueryAppointments(d *Diagnosis) *AppointmentQuery {
 	query := (&AppointmentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := d.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(diagnosis.Table, diagnosis.FieldID, id),
 			sqlgraph.To(appointment.Table, appointment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, diagnosis.AppointmentTable, diagnosis.AppointmentPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, diagnosis.AppointmentsTable, diagnosis.AppointmentsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
 		return fromV, nil
@@ -719,6 +719,38 @@ func (c *FeedbackClient) QueryResponses(f *Feedback) *PromptResponseQuery {
 	return query
 }
 
+// QueryPatient queries the patient edge of a Feedback.
+func (c *FeedbackClient) QueryPatient(f *Feedback) *PatientQuery {
+	query := (&PatientClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feedback.Table, feedback.FieldID, id),
+			sqlgraph.To(patient.Table, patient.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, feedback.PatientTable, feedback.PatientColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySurvey queries the survey edge of a Feedback.
+func (c *FeedbackClient) QuerySurvey(f *Feedback) *SurveyQuery {
+	query := (&SurveyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feedback.Table, feedback.FieldID, id),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, feedback.SurveyTable, feedback.SurveyColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FeedbackClient) Hooks() []Hook {
 	return c.hooks.Feedback
@@ -861,6 +893,22 @@ func (c *PatientClient) QueryAppointments(pa *Patient) *AppointmentQuery {
 			sqlgraph.From(patient.Table, patient.FieldID, id),
 			sqlgraph.To(appointment.Table, appointment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, patient.AppointmentsTable, patient.AppointmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(pa.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFeedbacks queries the feedbacks edge of a Patient.
+func (c *PatientClient) QueryFeedbacks(pa *Patient) *FeedbackQuery {
+	query := (&FeedbackClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pa.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(patient.Table, patient.FieldID, id),
+			sqlgraph.To(feedback.Table, feedback.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, patient.FeedbacksTable, patient.FeedbacksColumn),
 		)
 		fromV = sqlgraph.Neighbors(pa.driver.Dialect(), step)
 		return fromV, nil
@@ -1148,6 +1196,22 @@ func (c *PromptResponseClient) GetX(ctx context.Context, id uuid.UUID) *PromptRe
 		panic(err)
 	}
 	return obj
+}
+
+// QueryFeedback queries the feedback edge of a PromptResponse.
+func (c *PromptResponseClient) QueryFeedback(pr *PromptResponse) *FeedbackQuery {
+	query := (&FeedbackClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(promptresponse.Table, promptresponse.FieldID, id),
+			sqlgraph.To(feedback.Table, feedback.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, promptresponse.FeedbackTable, promptresponse.FeedbackColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -1441,6 +1505,22 @@ func (c *SurveyClient) QueryPrompts(s *Survey) *PromptQuery {
 			sqlgraph.From(survey.Table, survey.FieldID, id),
 			sqlgraph.To(prompt.Table, prompt.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, survey.PromptsTable, survey.PromptsColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFeedbacks queries the feedbacks edge of a Survey.
+func (c *SurveyClient) QueryFeedbacks(s *Survey) *FeedbackQuery {
+	query := (&FeedbackClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(survey.Table, survey.FieldID, id),
+			sqlgraph.To(feedback.Table, feedback.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, survey.FeedbacksTable, survey.FeedbacksColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil

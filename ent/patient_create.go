@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"skillsdemo/ent/appointment"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/patient"
 	"skillsdemo/ent/schema"
 	"time"
@@ -88,6 +89,21 @@ func (pc *PatientCreate) AddAppointments(a ...*Appointment) *PatientCreate {
 		ids[i] = a[i].ID
 	}
 	return pc.AddAppointmentIDs(ids...)
+}
+
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by IDs.
+func (pc *PatientCreate) AddFeedbackIDs(ids ...uuid.UUID) *PatientCreate {
+	pc.mutation.AddFeedbackIDs(ids...)
+	return pc
+}
+
+// AddFeedbacks adds the "feedbacks" edges to the Feedback entity.
+func (pc *PatientCreate) AddFeedbacks(f ...*Feedback) *PatientCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return pc.AddFeedbackIDs(ids...)
 }
 
 // Mutation returns the PatientMutation object of the builder.
@@ -203,6 +219,22 @@ func (pc *PatientCreate) createSpec() (*Patient, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(appointment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.FeedbacksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   patient.FeedbacksTable,
+			Columns: []string{patient.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

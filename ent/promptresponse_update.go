@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/predicate"
 	"skillsdemo/ent/promptresponse"
 	"skillsdemo/ent/schema"
@@ -14,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // PromptResponseUpdate is the builder for updating PromptResponse entities.
@@ -155,9 +157,34 @@ func (pru *PromptResponseUpdate) ClearFreeformValue() *PromptResponseUpdate {
 	return pru
 }
 
+// SetFeedbackID sets the "feedback" edge to the Feedback entity by ID.
+func (pru *PromptResponseUpdate) SetFeedbackID(id uuid.UUID) *PromptResponseUpdate {
+	pru.mutation.SetFeedbackID(id)
+	return pru
+}
+
+// SetNillableFeedbackID sets the "feedback" edge to the Feedback entity by ID if the given value is not nil.
+func (pru *PromptResponseUpdate) SetNillableFeedbackID(id *uuid.UUID) *PromptResponseUpdate {
+	if id != nil {
+		pru = pru.SetFeedbackID(*id)
+	}
+	return pru
+}
+
+// SetFeedback sets the "feedback" edge to the Feedback entity.
+func (pru *PromptResponseUpdate) SetFeedback(f *Feedback) *PromptResponseUpdate {
+	return pru.SetFeedbackID(f.ID)
+}
+
 // Mutation returns the PromptResponseMutation object of the builder.
 func (pru *PromptResponseUpdate) Mutation() *PromptResponseMutation {
 	return pru.mutation
+}
+
+// ClearFeedback clears the "feedback" edge to the Feedback entity.
+func (pru *PromptResponseUpdate) ClearFeedback() *PromptResponseUpdate {
+	pru.mutation.ClearFeedback()
+	return pru
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -252,6 +279,35 @@ func (pru *PromptResponseUpdate) sqlSave(ctx context.Context) (n int, err error)
 	}
 	if pru.mutation.FreeformValueCleared() {
 		_spec.ClearField(promptresponse.FieldFreeformValue, field.TypeString)
+	}
+	if pru.mutation.FeedbackCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   promptresponse.FeedbackTable,
+			Columns: []string{promptresponse.FeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pru.mutation.FeedbackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   promptresponse.FeedbackTable,
+			Columns: []string{promptresponse.FeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -399,9 +455,34 @@ func (pruo *PromptResponseUpdateOne) ClearFreeformValue() *PromptResponseUpdateO
 	return pruo
 }
 
+// SetFeedbackID sets the "feedback" edge to the Feedback entity by ID.
+func (pruo *PromptResponseUpdateOne) SetFeedbackID(id uuid.UUID) *PromptResponseUpdateOne {
+	pruo.mutation.SetFeedbackID(id)
+	return pruo
+}
+
+// SetNillableFeedbackID sets the "feedback" edge to the Feedback entity by ID if the given value is not nil.
+func (pruo *PromptResponseUpdateOne) SetNillableFeedbackID(id *uuid.UUID) *PromptResponseUpdateOne {
+	if id != nil {
+		pruo = pruo.SetFeedbackID(*id)
+	}
+	return pruo
+}
+
+// SetFeedback sets the "feedback" edge to the Feedback entity.
+func (pruo *PromptResponseUpdateOne) SetFeedback(f *Feedback) *PromptResponseUpdateOne {
+	return pruo.SetFeedbackID(f.ID)
+}
+
 // Mutation returns the PromptResponseMutation object of the builder.
 func (pruo *PromptResponseUpdateOne) Mutation() *PromptResponseMutation {
 	return pruo.mutation
+}
+
+// ClearFeedback clears the "feedback" edge to the Feedback entity.
+func (pruo *PromptResponseUpdateOne) ClearFeedback() *PromptResponseUpdateOne {
+	pruo.mutation.ClearFeedback()
+	return pruo
 }
 
 // Where appends a list predicates to the PromptResponseUpdate builder.
@@ -526,6 +607,35 @@ func (pruo *PromptResponseUpdateOne) sqlSave(ctx context.Context) (_node *Prompt
 	}
 	if pruo.mutation.FreeformValueCleared() {
 		_spec.ClearField(promptresponse.FieldFreeformValue, field.TypeString)
+	}
+	if pruo.mutation.FeedbackCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   promptresponse.FeedbackTable,
+			Columns: []string{promptresponse.FeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pruo.mutation.FeedbackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   promptresponse.FeedbackTable,
+			Columns: []string{promptresponse.FeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &PromptResponse{config: pruo.config}
 	_spec.Assign = _node.assignValues

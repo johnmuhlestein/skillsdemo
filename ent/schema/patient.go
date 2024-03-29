@@ -49,5 +49,6 @@ func (Patient) Fields() []ent.Field {
 func (Patient) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("appointments", Appointment.Type),
+		edge.To("feedbacks", Feedback.Type),
 	}
 }

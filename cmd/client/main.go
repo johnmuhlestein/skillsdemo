@@ -23,11 +23,9 @@ func main() {
 			Description: "On a scale of 1 - 10 with 1 indicating not like the survey and 10 indicating loving the survey how much did you enjoy the survey?",
     		ResponseType: &survey.Measure{
 				Type: survey.MeasureType_range,
-				MeasureOneof: &survey.Measure_Range{
-					Range: &survey.MeasureRange{
-						LowRange: 1,
-						HighRange: 10,
-					},
+				Range: &survey.MeasureRange{
+					LowRange: 1,
+					HighRange: 10,
 				},
 			},
 		},

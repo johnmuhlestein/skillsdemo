@@ -16,9 +16,9 @@ type Feedback struct {
 func (Feedback) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.String("status"),
-		field.Time("start_time"),
-		field.Time("completion_time"),
+		field.String("status"), //created, started, inprogress, completed
+		field.Time("start_time").Optional(),
+		field.Time("completion_time").Optional(),
 	}
 }
 

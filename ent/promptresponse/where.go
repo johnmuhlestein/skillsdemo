@@ -4,6 +4,7 @@ package promptresponse
 
 import (
 	"skillsdemo/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -55,6 +56,11 @@ func IDLTE(id uuid.UUID) predicate.PromptResponse {
 	return predicate.PromptResponse(sql.FieldLTE(FieldID, id))
 }
 
+// ParsedTemplate applies equality check predicate on the "parsed_template" field. It's identical to ParsedTemplateEQ.
+func ParsedTemplate(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldEQ(FieldParsedTemplate, v))
+}
+
 // PromptIndex applies equality check predicate on the "prompt_index" field. It's identical to PromptIndexEQ.
 func PromptIndex(v int) predicate.PromptResponse {
 	return predicate.PromptResponse(sql.FieldEQ(FieldPromptIndex, v))
@@ -73,6 +79,76 @@ func BoolValue(v string) predicate.PromptResponse {
 // FreeformValue applies equality check predicate on the "freeform_value" field. It's identical to FreeformValueEQ.
 func FreeformValue(v string) predicate.PromptResponse {
 	return predicate.PromptResponse(sql.FieldEQ(FieldFreeformValue, v))
+}
+
+// AnsweredTime applies equality check predicate on the "answered_time" field. It's identical to AnsweredTimeEQ.
+func AnsweredTime(v time.Time) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldEQ(FieldAnsweredTime, v))
+}
+
+// ParsedTemplateEQ applies the EQ predicate on the "parsed_template" field.
+func ParsedTemplateEQ(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldEQ(FieldParsedTemplate, v))
+}
+
+// ParsedTemplateNEQ applies the NEQ predicate on the "parsed_template" field.
+func ParsedTemplateNEQ(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldNEQ(FieldParsedTemplate, v))
+}
+
+// ParsedTemplateIn applies the In predicate on the "parsed_template" field.
+func ParsedTemplateIn(vs ...string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldIn(FieldParsedTemplate, vs...))
+}
+
+// ParsedTemplateNotIn applies the NotIn predicate on the "parsed_template" field.
+func ParsedTemplateNotIn(vs ...string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldNotIn(FieldParsedTemplate, vs...))
+}
+
+// ParsedTemplateGT applies the GT predicate on the "parsed_template" field.
+func ParsedTemplateGT(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldGT(FieldParsedTemplate, v))
+}
+
+// ParsedTemplateGTE applies the GTE predicate on the "parsed_template" field.
+func ParsedTemplateGTE(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldGTE(FieldParsedTemplate, v))
+}
+
+// ParsedTemplateLT applies the LT predicate on the "parsed_template" field.
+func ParsedTemplateLT(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldLT(FieldParsedTemplate, v))
+}
+
+// ParsedTemplateLTE applies the LTE predicate on the "parsed_template" field.
+func ParsedTemplateLTE(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldLTE(FieldParsedTemplate, v))
+}
+
+// ParsedTemplateContains applies the Contains predicate on the "parsed_template" field.
+func ParsedTemplateContains(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldContains(FieldParsedTemplate, v))
+}
+
+// ParsedTemplateHasPrefix applies the HasPrefix predicate on the "parsed_template" field.
+func ParsedTemplateHasPrefix(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldHasPrefix(FieldParsedTemplate, v))
+}
+
+// ParsedTemplateHasSuffix applies the HasSuffix predicate on the "parsed_template" field.
+func ParsedTemplateHasSuffix(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldHasSuffix(FieldParsedTemplate, v))
+}
+
+// ParsedTemplateEqualFold applies the EqualFold predicate on the "parsed_template" field.
+func ParsedTemplateEqualFold(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldEqualFold(FieldParsedTemplate, v))
+}
+
+// ParsedTemplateContainsFold applies the ContainsFold predicate on the "parsed_template" field.
+func ParsedTemplateContainsFold(v string) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldContainsFold(FieldParsedTemplate, v))
 }
 
 // PromptIndexEQ applies the EQ predicate on the "prompt_index" field.
@@ -333,6 +409,56 @@ func FreeformValueEqualFold(v string) predicate.PromptResponse {
 // FreeformValueContainsFold applies the ContainsFold predicate on the "freeform_value" field.
 func FreeformValueContainsFold(v string) predicate.PromptResponse {
 	return predicate.PromptResponse(sql.FieldContainsFold(FieldFreeformValue, v))
+}
+
+// AnsweredTimeEQ applies the EQ predicate on the "answered_time" field.
+func AnsweredTimeEQ(v time.Time) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldEQ(FieldAnsweredTime, v))
+}
+
+// AnsweredTimeNEQ applies the NEQ predicate on the "answered_time" field.
+func AnsweredTimeNEQ(v time.Time) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldNEQ(FieldAnsweredTime, v))
+}
+
+// AnsweredTimeIn applies the In predicate on the "answered_time" field.
+func AnsweredTimeIn(vs ...time.Time) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldIn(FieldAnsweredTime, vs...))
+}
+
+// AnsweredTimeNotIn applies the NotIn predicate on the "answered_time" field.
+func AnsweredTimeNotIn(vs ...time.Time) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldNotIn(FieldAnsweredTime, vs...))
+}
+
+// AnsweredTimeGT applies the GT predicate on the "answered_time" field.
+func AnsweredTimeGT(v time.Time) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldGT(FieldAnsweredTime, v))
+}
+
+// AnsweredTimeGTE applies the GTE predicate on the "answered_time" field.
+func AnsweredTimeGTE(v time.Time) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldGTE(FieldAnsweredTime, v))
+}
+
+// AnsweredTimeLT applies the LT predicate on the "answered_time" field.
+func AnsweredTimeLT(v time.Time) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldLT(FieldAnsweredTime, v))
+}
+
+// AnsweredTimeLTE applies the LTE predicate on the "answered_time" field.
+func AnsweredTimeLTE(v time.Time) predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldLTE(FieldAnsweredTime, v))
+}
+
+// AnsweredTimeIsNil applies the IsNil predicate on the "answered_time" field.
+func AnsweredTimeIsNil() predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldIsNull(FieldAnsweredTime))
+}
+
+// AnsweredTimeNotNil applies the NotNil predicate on the "answered_time" field.
+func AnsweredTimeNotNil() predicate.PromptResponse {
+	return predicate.PromptResponse(sql.FieldNotNull(FieldAnsweredTime))
 }
 
 // HasFeedback applies the HasEdge predicate on the "feedback" edge.

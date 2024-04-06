@@ -11,6 +11,7 @@ import (
 	"skillsdemo/ent/patient"
 	"skillsdemo/ent/provider"
 	"skillsdemo/ent/schema"
+	"skillsdemo/ent/survey"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -101,6 +102,25 @@ func (ac *AppointmentCreate) AddDiagnoses(d ...*Diagnosis) *AppointmentCreate {
 		ids[i] = d[i].ID
 	}
 	return ac.AddDiagnosisIDs(ids...)
+}
+
+// SetSurveyID sets the "survey" edge to the Survey entity by ID.
+func (ac *AppointmentCreate) SetSurveyID(id uuid.UUID) *AppointmentCreate {
+	ac.mutation.SetSurveyID(id)
+	return ac
+}
+
+// SetNillableSurveyID sets the "survey" edge to the Survey entity by ID if the given value is not nil.
+func (ac *AppointmentCreate) SetNillableSurveyID(id *uuid.UUID) *AppointmentCreate {
+	if id != nil {
+		ac = ac.SetSurveyID(*id)
+	}
+	return ac
+}
+
+// SetSurvey sets the "survey" edge to the Survey entity.
+func (ac *AppointmentCreate) SetSurvey(s *Survey) *AppointmentCreate {
+	return ac.SetSurveyID(s.ID)
 }
 
 // Mutation returns the AppointmentMutation object of the builder.
@@ -243,6 +263,23 @@ func (ac *AppointmentCreate) createSpec() (*Appointment, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   appointment.SurveyTable,
+			Columns: []string{appointment.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(survey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.survey_appointments = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

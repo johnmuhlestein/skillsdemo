@@ -9,6 +9,7 @@ import (
 	"skillsdemo/ent/promptresponse"
 	"skillsdemo/ent/schema"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -20,6 +21,8 @@ type PromptResponse struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
+	// ParsedTemplate holds the value of the "parsed_template" field.
+	ParsedTemplate string `json:"parsed_template,omitempty"`
 	// PromptIndex holds the value of the "prompt_index" field.
 	PromptIndex int `json:"prompt_index,omitempty"`
 	// RangeValue holds the value of the "range_value" field.
@@ -32,6 +35,8 @@ type PromptResponse struct {
 	LabelValues []string `json:"label_values,omitempty"`
 	// FreeformValue holds the value of the "freeform_value" field.
 	FreeformValue string `json:"freeform_value,omitempty"`
+	// AnsweredTime holds the value of the "answered_time" field.
+	AnsweredTime time.Time `json:"answered_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PromptResponseQuery when eager-loading is set.
 	Edges              PromptResponseEdges `json:"edges"`
@@ -68,8 +73,10 @@ func (*PromptResponse) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case promptresponse.FieldPromptIndex, promptresponse.FieldRangeValue:
 			values[i] = new(sql.NullInt64)
-		case promptresponse.FieldBoolValue, promptresponse.FieldFreeformValue:
+		case promptresponse.FieldParsedTemplate, promptresponse.FieldBoolValue, promptresponse.FieldFreeformValue:
 			values[i] = new(sql.NullString)
+		case promptresponse.FieldAnsweredTime:
+			values[i] = new(sql.NullTime)
 		case promptresponse.FieldID:
 			values[i] = new(uuid.UUID)
 		case promptresponse.ForeignKeys[0]: // feedback_responses
@@ -94,6 +101,12 @@ func (pr *PromptResponse) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				pr.ID = *value
+			}
+		case promptresponse.FieldParsedTemplate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field parsed_template", values[i])
+			} else if value.Valid {
+				pr.ParsedTemplate = value.String
 			}
 		case promptresponse.FieldPromptIndex:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -134,6 +147,12 @@ func (pr *PromptResponse) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field freeform_value", values[i])
 			} else if value.Valid {
 				pr.FreeformValue = value.String
+			}
+		case promptresponse.FieldAnsweredTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field answered_time", values[i])
+			} else if value.Valid {
+				pr.AnsweredTime = value.Time
 			}
 		case promptresponse.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -183,6 +202,9 @@ func (pr *PromptResponse) String() string {
 	var builder strings.Builder
 	builder.WriteString("PromptResponse(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", pr.ID))
+	builder.WriteString("parsed_template=")
+	builder.WriteString(pr.ParsedTemplate)
+	builder.WriteString(", ")
 	builder.WriteString("prompt_index=")
 	builder.WriteString(fmt.Sprintf("%v", pr.PromptIndex))
 	builder.WriteString(", ")
@@ -200,6 +222,9 @@ func (pr *PromptResponse) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("freeform_value=")
 	builder.WriteString(pr.FreeformValue)
+	builder.WriteString(", ")
+	builder.WriteString("answered_time=")
+	builder.WriteString(pr.AnsweredTime.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

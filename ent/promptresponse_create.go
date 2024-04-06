@@ -9,6 +9,7 @@ import (
 	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/promptresponse"
 	"skillsdemo/ent/schema"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,6 +21,12 @@ type PromptResponseCreate struct {
 	config
 	mutation *PromptResponseMutation
 	hooks    []Hook
+}
+
+// SetParsedTemplate sets the "parsed_template" field.
+func (prc *PromptResponseCreate) SetParsedTemplate(s string) *PromptResponseCreate {
+	prc.mutation.SetParsedTemplate(s)
+	return prc
 }
 
 // SetPromptIndex sets the "prompt_index" field.
@@ -86,6 +93,20 @@ func (prc *PromptResponseCreate) SetFreeformValue(s string) *PromptResponseCreat
 func (prc *PromptResponseCreate) SetNillableFreeformValue(s *string) *PromptResponseCreate {
 	if s != nil {
 		prc.SetFreeformValue(*s)
+	}
+	return prc
+}
+
+// SetAnsweredTime sets the "answered_time" field.
+func (prc *PromptResponseCreate) SetAnsweredTime(t time.Time) *PromptResponseCreate {
+	prc.mutation.SetAnsweredTime(t)
+	return prc
+}
+
+// SetNillableAnsweredTime sets the "answered_time" field if the given value is not nil.
+func (prc *PromptResponseCreate) SetNillableAnsweredTime(t *time.Time) *PromptResponseCreate {
+	if t != nil {
+		prc.SetAnsweredTime(*t)
 	}
 	return prc
 }
@@ -166,6 +187,9 @@ func (prc *PromptResponseCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (prc *PromptResponseCreate) check() error {
+	if _, ok := prc.mutation.ParsedTemplate(); !ok {
+		return &ValidationError{Name: "parsed_template", err: errors.New(`ent: missing required field "PromptResponse.parsed_template"`)}
+	}
 	if _, ok := prc.mutation.PromptIndex(); !ok {
 		return &ValidationError{Name: "prompt_index", err: errors.New(`ent: missing required field "PromptResponse.prompt_index"`)}
 	}
@@ -209,6 +233,10 @@ func (prc *PromptResponseCreate) createSpec() (*PromptResponse, *sqlgraph.Create
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := prc.mutation.ParsedTemplate(); ok {
+		_spec.SetField(promptresponse.FieldParsedTemplate, field.TypeString, value)
+		_node.ParsedTemplate = value
+	}
 	if value, ok := prc.mutation.PromptIndex(); ok {
 		_spec.SetField(promptresponse.FieldPromptIndex, field.TypeInt, value)
 		_node.PromptIndex = value
@@ -232,6 +260,10 @@ func (prc *PromptResponseCreate) createSpec() (*PromptResponse, *sqlgraph.Create
 	if value, ok := prc.mutation.FreeformValue(); ok {
 		_spec.SetField(promptresponse.FieldFreeformValue, field.TypeString, value)
 		_node.FreeformValue = value
+	}
+	if value, ok := prc.mutation.AnsweredTime(); ok {
+		_spec.SetField(promptresponse.FieldAnsweredTime, field.TypeTime, value)
+		_node.AnsweredTime = value
 	}
 	if nodes := prc.mutation.FeedbackIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

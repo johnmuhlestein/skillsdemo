@@ -59,6 +59,8 @@ type AppointmentMutation struct {
 	diagnoses        map[uuid.UUID]struct{}
 	removeddiagnoses map[uuid.UUID]struct{}
 	cleareddiagnoses bool
+	survey           *uuid.UUID
+	clearedsurvey    bool
 	done             bool
 	oldValue         func(context.Context) (*Appointment, error)
 	predicates       []predicate.Appointment
@@ -372,6 +374,45 @@ func (m *AppointmentMutation) ResetDiagnoses() {
 	m.removeddiagnoses = nil
 }
 
+// SetSurveyID sets the "survey" edge to the Survey entity by id.
+func (m *AppointmentMutation) SetSurveyID(id uuid.UUID) {
+	m.survey = &id
+}
+
+// ClearSurvey clears the "survey" edge to the Survey entity.
+func (m *AppointmentMutation) ClearSurvey() {
+	m.clearedsurvey = true
+}
+
+// SurveyCleared reports if the "survey" edge to the Survey entity was cleared.
+func (m *AppointmentMutation) SurveyCleared() bool {
+	return m.clearedsurvey
+}
+
+// SurveyID returns the "survey" edge ID in the mutation.
+func (m *AppointmentMutation) SurveyID() (id uuid.UUID, exists bool) {
+	if m.survey != nil {
+		return *m.survey, true
+	}
+	return
+}
+
+// SurveyIDs returns the "survey" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SurveyID instead. It exists only for internal usage by the builders.
+func (m *AppointmentMutation) SurveyIDs() (ids []uuid.UUID) {
+	if id := m.survey; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSurvey resets all changes to the "survey" edge.
+func (m *AppointmentMutation) ResetSurvey() {
+	m.survey = nil
+	m.clearedsurvey = false
+}
+
 // Where appends a list predicates to the AppointmentMutation builder.
 func (m *AppointmentMutation) Where(ps ...predicate.Appointment) {
 	m.predicates = append(m.predicates, ps...)
@@ -522,7 +563,7 @@ func (m *AppointmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AppointmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.patient != nil {
 		edges = append(edges, appointment.EdgePatient)
 	}
@@ -531,6 +572,9 @@ func (m *AppointmentMutation) AddedEdges() []string {
 	}
 	if m.diagnoses != nil {
 		edges = append(edges, appointment.EdgeDiagnoses)
+	}
+	if m.survey != nil {
+		edges = append(edges, appointment.EdgeSurvey)
 	}
 	return edges
 }
@@ -553,13 +597,17 @@ func (m *AppointmentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case appointment.EdgeSurvey:
+		if id := m.survey; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AppointmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removeddiagnoses != nil {
 		edges = append(edges, appointment.EdgeDiagnoses)
 	}
@@ -582,7 +630,7 @@ func (m *AppointmentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AppointmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedpatient {
 		edges = append(edges, appointment.EdgePatient)
 	}
@@ -591,6 +639,9 @@ func (m *AppointmentMutation) ClearedEdges() []string {
 	}
 	if m.cleareddiagnoses {
 		edges = append(edges, appointment.EdgeDiagnoses)
+	}
+	if m.clearedsurvey {
+		edges = append(edges, appointment.EdgeSurvey)
 	}
 	return edges
 }
@@ -605,6 +656,8 @@ func (m *AppointmentMutation) EdgeCleared(name string) bool {
 		return m.clearedprovider
 	case appointment.EdgeDiagnoses:
 		return m.cleareddiagnoses
+	case appointment.EdgeSurvey:
+		return m.clearedsurvey
 	}
 	return false
 }
@@ -618,6 +671,9 @@ func (m *AppointmentMutation) ClearEdge(name string) error {
 		return nil
 	case appointment.EdgeProvider:
 		m.ClearProvider()
+		return nil
+	case appointment.EdgeSurvey:
+		m.ClearSurvey()
 		return nil
 	}
 	return fmt.Errorf("unknown Appointment unique edge %s", name)
@@ -635,6 +691,9 @@ func (m *AppointmentMutation) ResetEdge(name string) error {
 		return nil
 	case appointment.EdgeDiagnoses:
 		m.ResetDiagnoses()
+		return nil
+	case appointment.EdgeSurvey:
+		m.ResetSurvey()
 		return nil
 	}
 	return fmt.Errorf("unknown Appointment edge %s", name)
@@ -1366,9 +1425,22 @@ func (m *FeedbackMutation) OldStartTime(ctx context.Context) (v time.Time, err e
 	return oldValue.StartTime, nil
 }
 
+// ClearStartTime clears the value of the "start_time" field.
+func (m *FeedbackMutation) ClearStartTime() {
+	m.start_time = nil
+	m.clearedFields[feedback.FieldStartTime] = struct{}{}
+}
+
+// StartTimeCleared returns if the "start_time" field was cleared in this mutation.
+func (m *FeedbackMutation) StartTimeCleared() bool {
+	_, ok := m.clearedFields[feedback.FieldStartTime]
+	return ok
+}
+
 // ResetStartTime resets all changes to the "start_time" field.
 func (m *FeedbackMutation) ResetStartTime() {
 	m.start_time = nil
+	delete(m.clearedFields, feedback.FieldStartTime)
 }
 
 // SetCompletionTime sets the "completion_time" field.
@@ -1402,9 +1474,22 @@ func (m *FeedbackMutation) OldCompletionTime(ctx context.Context) (v time.Time, 
 	return oldValue.CompletionTime, nil
 }
 
+// ClearCompletionTime clears the value of the "completion_time" field.
+func (m *FeedbackMutation) ClearCompletionTime() {
+	m.completion_time = nil
+	m.clearedFields[feedback.FieldCompletionTime] = struct{}{}
+}
+
+// CompletionTimeCleared returns if the "completion_time" field was cleared in this mutation.
+func (m *FeedbackMutation) CompletionTimeCleared() bool {
+	_, ok := m.clearedFields[feedback.FieldCompletionTime]
+	return ok
+}
+
 // ResetCompletionTime resets all changes to the "completion_time" field.
 func (m *FeedbackMutation) ResetCompletionTime() {
 	m.completion_time = nil
+	delete(m.clearedFields, feedback.FieldCompletionTime)
 }
 
 // AddResponseIDs adds the "responses" edge to the PromptResponse entity by ids.
@@ -1671,7 +1756,14 @@ func (m *FeedbackMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *FeedbackMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(feedback.FieldStartTime) {
+		fields = append(fields, feedback.FieldStartTime)
+	}
+	if m.FieldCleared(feedback.FieldCompletionTime) {
+		fields = append(fields, feedback.FieldCompletionTime)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1684,6 +1776,14 @@ func (m *FeedbackMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *FeedbackMutation) ClearField(name string) error {
+	switch name {
+	case feedback.FieldStartTime:
+		m.ClearStartTime()
+		return nil
+	case feedback.FieldCompletionTime:
+		m.ClearCompletionTime()
+		return nil
+	}
 	return fmt.Errorf("unknown Feedback nullable field %s", name)
 }
 
@@ -1832,7 +1932,7 @@ type PatientMutation struct {
 	id                  *uuid.UUID
 	name                *schema.Name
 	gender              *string
-	birtdate            *time.Time
+	birthdate           *time.Time
 	contact             *[]schema.Contact
 	appendcontact       []schema.Contact
 	address             *[]schema.Address
@@ -2025,53 +2125,53 @@ func (m *PatientMutation) ResetGender() {
 	m.gender = nil
 }
 
-// SetBirtdate sets the "birtdate" field.
-func (m *PatientMutation) SetBirtdate(t time.Time) {
-	m.birtdate = &t
+// SetBirthdate sets the "birthdate" field.
+func (m *PatientMutation) SetBirthdate(t time.Time) {
+	m.birthdate = &t
 }
 
-// Birtdate returns the value of the "birtdate" field in the mutation.
-func (m *PatientMutation) Birtdate() (r time.Time, exists bool) {
-	v := m.birtdate
+// Birthdate returns the value of the "birthdate" field in the mutation.
+func (m *PatientMutation) Birthdate() (r time.Time, exists bool) {
+	v := m.birthdate
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldBirtdate returns the old "birtdate" field's value of the Patient entity.
+// OldBirthdate returns the old "birthdate" field's value of the Patient entity.
 // If the Patient object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PatientMutation) OldBirtdate(ctx context.Context) (v time.Time, err error) {
+func (m *PatientMutation) OldBirthdate(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBirtdate is only allowed on UpdateOne operations")
+		return v, errors.New("OldBirthdate is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBirtdate requires an ID field in the mutation")
+		return v, errors.New("OldBirthdate requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBirtdate: %w", err)
+		return v, fmt.Errorf("querying old value for OldBirthdate: %w", err)
 	}
-	return oldValue.Birtdate, nil
+	return oldValue.Birthdate, nil
 }
 
-// ClearBirtdate clears the value of the "birtdate" field.
-func (m *PatientMutation) ClearBirtdate() {
-	m.birtdate = nil
-	m.clearedFields[patient.FieldBirtdate] = struct{}{}
+// ClearBirthdate clears the value of the "birthdate" field.
+func (m *PatientMutation) ClearBirthdate() {
+	m.birthdate = nil
+	m.clearedFields[patient.FieldBirthdate] = struct{}{}
 }
 
-// BirtdateCleared returns if the "birtdate" field was cleared in this mutation.
-func (m *PatientMutation) BirtdateCleared() bool {
-	_, ok := m.clearedFields[patient.FieldBirtdate]
+// BirthdateCleared returns if the "birthdate" field was cleared in this mutation.
+func (m *PatientMutation) BirthdateCleared() bool {
+	_, ok := m.clearedFields[patient.FieldBirthdate]
 	return ok
 }
 
-// ResetBirtdate resets all changes to the "birtdate" field.
-func (m *PatientMutation) ResetBirtdate() {
-	m.birtdate = nil
-	delete(m.clearedFields, patient.FieldBirtdate)
+// ResetBirthdate resets all changes to the "birthdate" field.
+func (m *PatientMutation) ResetBirthdate() {
+	m.birthdate = nil
+	delete(m.clearedFields, patient.FieldBirthdate)
 }
 
 // SetContact sets the "contact" field.
@@ -2353,8 +2453,8 @@ func (m *PatientMutation) Fields() []string {
 	if m.gender != nil {
 		fields = append(fields, patient.FieldGender)
 	}
-	if m.birtdate != nil {
-		fields = append(fields, patient.FieldBirtdate)
+	if m.birthdate != nil {
+		fields = append(fields, patient.FieldBirthdate)
 	}
 	if m.contact != nil {
 		fields = append(fields, patient.FieldContact)
@@ -2374,8 +2474,8 @@ func (m *PatientMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case patient.FieldGender:
 		return m.Gender()
-	case patient.FieldBirtdate:
-		return m.Birtdate()
+	case patient.FieldBirthdate:
+		return m.Birthdate()
 	case patient.FieldContact:
 		return m.Contact()
 	case patient.FieldAddress:
@@ -2393,8 +2493,8 @@ func (m *PatientMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldName(ctx)
 	case patient.FieldGender:
 		return m.OldGender(ctx)
-	case patient.FieldBirtdate:
-		return m.OldBirtdate(ctx)
+	case patient.FieldBirthdate:
+		return m.OldBirthdate(ctx)
 	case patient.FieldContact:
 		return m.OldContact(ctx)
 	case patient.FieldAddress:
@@ -2422,12 +2522,12 @@ func (m *PatientMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetGender(v)
 		return nil
-	case patient.FieldBirtdate:
+	case patient.FieldBirthdate:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetBirtdate(v)
+		m.SetBirthdate(v)
 		return nil
 	case patient.FieldContact:
 		v, ok := value.([]schema.Contact)
@@ -2473,8 +2573,8 @@ func (m *PatientMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *PatientMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(patient.FieldBirtdate) {
-		fields = append(fields, patient.FieldBirtdate)
+	if m.FieldCleared(patient.FieldBirthdate) {
+		fields = append(fields, patient.FieldBirthdate)
 	}
 	if m.FieldCleared(patient.FieldContact) {
 		fields = append(fields, patient.FieldContact)
@@ -2496,8 +2596,8 @@ func (m *PatientMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *PatientMutation) ClearField(name string) error {
 	switch name {
-	case patient.FieldBirtdate:
-		m.ClearBirtdate()
+	case patient.FieldBirthdate:
+		m.ClearBirthdate()
 		return nil
 	case patient.FieldContact:
 		m.ClearContact()
@@ -2519,8 +2619,8 @@ func (m *PatientMutation) ResetField(name string) error {
 	case patient.FieldGender:
 		m.ResetGender()
 		return nil
-	case patient.FieldBirtdate:
-		m.ResetBirtdate()
+	case patient.FieldBirthdate:
+		m.ResetBirthdate()
 		return nil
 	case patient.FieldContact:
 		m.ResetContact()
@@ -3321,6 +3421,7 @@ type PromptResponseMutation struct {
 	op                 Op
 	typ                string
 	id                 *uuid.UUID
+	parsed_template    *string
 	prompt_index       *int
 	addprompt_index    *int
 	range_value        *int
@@ -3330,6 +3431,7 @@ type PromptResponseMutation struct {
 	label_values       *[]string
 	appendlabel_values []string
 	freeform_value     *string
+	answered_time      *time.Time
 	clearedFields      map[string]struct{}
 	feedback           *uuid.UUID
 	clearedfeedback    bool
@@ -3440,6 +3542,42 @@ func (m *PromptResponseMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetParsedTemplate sets the "parsed_template" field.
+func (m *PromptResponseMutation) SetParsedTemplate(s string) {
+	m.parsed_template = &s
+}
+
+// ParsedTemplate returns the value of the "parsed_template" field in the mutation.
+func (m *PromptResponseMutation) ParsedTemplate() (r string, exists bool) {
+	v := m.parsed_template
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParsedTemplate returns the old "parsed_template" field's value of the PromptResponse entity.
+// If the PromptResponse object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PromptResponseMutation) OldParsedTemplate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParsedTemplate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParsedTemplate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParsedTemplate: %w", err)
+	}
+	return oldValue.ParsedTemplate, nil
+}
+
+// ResetParsedTemplate resets all changes to the "parsed_template" field.
+func (m *PromptResponseMutation) ResetParsedTemplate() {
+	m.parsed_template = nil
 }
 
 // SetPromptIndex sets the "prompt_index" field.
@@ -3780,6 +3918,55 @@ func (m *PromptResponseMutation) ResetFreeformValue() {
 	delete(m.clearedFields, promptresponse.FieldFreeformValue)
 }
 
+// SetAnsweredTime sets the "answered_time" field.
+func (m *PromptResponseMutation) SetAnsweredTime(t time.Time) {
+	m.answered_time = &t
+}
+
+// AnsweredTime returns the value of the "answered_time" field in the mutation.
+func (m *PromptResponseMutation) AnsweredTime() (r time.Time, exists bool) {
+	v := m.answered_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnsweredTime returns the old "answered_time" field's value of the PromptResponse entity.
+// If the PromptResponse object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PromptResponseMutation) OldAnsweredTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnsweredTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnsweredTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnsweredTime: %w", err)
+	}
+	return oldValue.AnsweredTime, nil
+}
+
+// ClearAnsweredTime clears the value of the "answered_time" field.
+func (m *PromptResponseMutation) ClearAnsweredTime() {
+	m.answered_time = nil
+	m.clearedFields[promptresponse.FieldAnsweredTime] = struct{}{}
+}
+
+// AnsweredTimeCleared returns if the "answered_time" field was cleared in this mutation.
+func (m *PromptResponseMutation) AnsweredTimeCleared() bool {
+	_, ok := m.clearedFields[promptresponse.FieldAnsweredTime]
+	return ok
+}
+
+// ResetAnsweredTime resets all changes to the "answered_time" field.
+func (m *PromptResponseMutation) ResetAnsweredTime() {
+	m.answered_time = nil
+	delete(m.clearedFields, promptresponse.FieldAnsweredTime)
+}
+
 // SetFeedbackID sets the "feedback" edge to the Feedback entity by id.
 func (m *PromptResponseMutation) SetFeedbackID(id uuid.UUID) {
 	m.feedback = &id
@@ -3853,7 +4040,10 @@ func (m *PromptResponseMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PromptResponseMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 8)
+	if m.parsed_template != nil {
+		fields = append(fields, promptresponse.FieldParsedTemplate)
+	}
 	if m.prompt_index != nil {
 		fields = append(fields, promptresponse.FieldPromptIndex)
 	}
@@ -3872,6 +4062,9 @@ func (m *PromptResponseMutation) Fields() []string {
 	if m.freeform_value != nil {
 		fields = append(fields, promptresponse.FieldFreeformValue)
 	}
+	if m.answered_time != nil {
+		fields = append(fields, promptresponse.FieldAnsweredTime)
+	}
 	return fields
 }
 
@@ -3880,6 +4073,8 @@ func (m *PromptResponseMutation) Fields() []string {
 // schema.
 func (m *PromptResponseMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case promptresponse.FieldParsedTemplate:
+		return m.ParsedTemplate()
 	case promptresponse.FieldPromptIndex:
 		return m.PromptIndex()
 	case promptresponse.FieldRangeValue:
@@ -3892,6 +4087,8 @@ func (m *PromptResponseMutation) Field(name string) (ent.Value, bool) {
 		return m.LabelValues()
 	case promptresponse.FieldFreeformValue:
 		return m.FreeformValue()
+	case promptresponse.FieldAnsweredTime:
+		return m.AnsweredTime()
 	}
 	return nil, false
 }
@@ -3901,6 +4098,8 @@ func (m *PromptResponseMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *PromptResponseMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case promptresponse.FieldParsedTemplate:
+		return m.OldParsedTemplate(ctx)
 	case promptresponse.FieldPromptIndex:
 		return m.OldPromptIndex(ctx)
 	case promptresponse.FieldRangeValue:
@@ -3913,6 +4112,8 @@ func (m *PromptResponseMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldLabelValues(ctx)
 	case promptresponse.FieldFreeformValue:
 		return m.OldFreeformValue(ctx)
+	case promptresponse.FieldAnsweredTime:
+		return m.OldAnsweredTime(ctx)
 	}
 	return nil, fmt.Errorf("unknown PromptResponse field %s", name)
 }
@@ -3922,6 +4123,13 @@ func (m *PromptResponseMutation) OldField(ctx context.Context, name string) (ent
 // type.
 func (m *PromptResponseMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case promptresponse.FieldParsedTemplate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParsedTemplate(v)
+		return nil
 	case promptresponse.FieldPromptIndex:
 		v, ok := value.(int)
 		if !ok {
@@ -3963,6 +4171,13 @@ func (m *PromptResponseMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetFreeformValue(v)
+		return nil
+	case promptresponse.FieldAnsweredTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnsweredTime(v)
 		return nil
 	}
 	return fmt.Errorf("unknown PromptResponse field %s", name)
@@ -4036,6 +4251,9 @@ func (m *PromptResponseMutation) ClearedFields() []string {
 	if m.FieldCleared(promptresponse.FieldFreeformValue) {
 		fields = append(fields, promptresponse.FieldFreeformValue)
 	}
+	if m.FieldCleared(promptresponse.FieldAnsweredTime) {
+		fields = append(fields, promptresponse.FieldAnsweredTime)
+	}
 	return fields
 }
 
@@ -4065,6 +4283,9 @@ func (m *PromptResponseMutation) ClearField(name string) error {
 	case promptresponse.FieldFreeformValue:
 		m.ClearFreeformValue()
 		return nil
+	case promptresponse.FieldAnsweredTime:
+		m.ClearAnsweredTime()
+		return nil
 	}
 	return fmt.Errorf("unknown PromptResponse nullable field %s", name)
 }
@@ -4073,6 +4294,9 @@ func (m *PromptResponseMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *PromptResponseMutation) ResetField(name string) error {
 	switch name {
+	case promptresponse.FieldParsedTemplate:
+		m.ResetParsedTemplate()
+		return nil
 	case promptresponse.FieldPromptIndex:
 		m.ResetPromptIndex()
 		return nil
@@ -4090,6 +4314,9 @@ func (m *PromptResponseMutation) ResetField(name string) error {
 		return nil
 	case promptresponse.FieldFreeformValue:
 		m.ResetFreeformValue()
+		return nil
+	case promptresponse.FieldAnsweredTime:
+		m.ResetAnsweredTime()
 		return nil
 	}
 	return fmt.Errorf("unknown PromptResponse field %s", name)
@@ -4597,24 +4824,27 @@ func (m *ProviderMutation) ResetEdge(name string) error {
 // SurveyMutation represents an operation that mutates the Survey nodes in the graph.
 type SurveyMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	title            *string
-	description      *string
-	status           *survey.Status
-	active_time      *time.Time
-	archive_time     *time.Time
-	clearedFields    map[string]struct{}
-	prompts          map[uuid.UUID]struct{}
-	removedprompts   map[uuid.UUID]struct{}
-	clearedprompts   bool
-	feedbacks        map[uuid.UUID]struct{}
-	removedfeedbacks map[uuid.UUID]struct{}
-	clearedfeedbacks bool
-	done             bool
-	oldValue         func(context.Context) (*Survey, error)
-	predicates       []predicate.Survey
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	title               *string
+	description         *string
+	status              *survey.Status
+	active_time         *time.Time
+	archive_time        *time.Time
+	clearedFields       map[string]struct{}
+	prompts             map[uuid.UUID]struct{}
+	removedprompts      map[uuid.UUID]struct{}
+	clearedprompts      bool
+	feedbacks           map[uuid.UUID]struct{}
+	removedfeedbacks    map[uuid.UUID]struct{}
+	clearedfeedbacks    bool
+	appointments        map[uuid.UUID]struct{}
+	removedappointments map[uuid.UUID]struct{}
+	clearedappointments bool
+	done                bool
+	oldValue            func(context.Context) (*Survey, error)
+	predicates          []predicate.Survey
 }
 
 var _ ent.Mutation = (*SurveyMutation)(nil)
@@ -5035,6 +5265,60 @@ func (m *SurveyMutation) ResetFeedbacks() {
 	m.removedfeedbacks = nil
 }
 
+// AddAppointmentIDs adds the "appointments" edge to the Appointment entity by ids.
+func (m *SurveyMutation) AddAppointmentIDs(ids ...uuid.UUID) {
+	if m.appointments == nil {
+		m.appointments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.appointments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAppointments clears the "appointments" edge to the Appointment entity.
+func (m *SurveyMutation) ClearAppointments() {
+	m.clearedappointments = true
+}
+
+// AppointmentsCleared reports if the "appointments" edge to the Appointment entity was cleared.
+func (m *SurveyMutation) AppointmentsCleared() bool {
+	return m.clearedappointments
+}
+
+// RemoveAppointmentIDs removes the "appointments" edge to the Appointment entity by IDs.
+func (m *SurveyMutation) RemoveAppointmentIDs(ids ...uuid.UUID) {
+	if m.removedappointments == nil {
+		m.removedappointments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.appointments, ids[i])
+		m.removedappointments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAppointments returns the removed IDs of the "appointments" edge to the Appointment entity.
+func (m *SurveyMutation) RemovedAppointmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedappointments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AppointmentsIDs returns the "appointments" edge IDs in the mutation.
+func (m *SurveyMutation) AppointmentsIDs() (ids []uuid.UUID) {
+	for id := range m.appointments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAppointments resets all changes to the "appointments" edge.
+func (m *SurveyMutation) ResetAppointments() {
+	m.appointments = nil
+	m.clearedappointments = false
+	m.removedappointments = nil
+}
+
 // Where appends a list predicates to the SurveyMutation builder.
 func (m *SurveyMutation) Where(ps ...predicate.Survey) {
 	m.predicates = append(m.predicates, ps...)
@@ -5251,12 +5535,15 @@ func (m *SurveyMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SurveyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.prompts != nil {
 		edges = append(edges, survey.EdgePrompts)
 	}
 	if m.feedbacks != nil {
 		edges = append(edges, survey.EdgeFeedbacks)
+	}
+	if m.appointments != nil {
+		edges = append(edges, survey.EdgeAppointments)
 	}
 	return edges
 }
@@ -5277,18 +5564,27 @@ func (m *SurveyMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case survey.EdgeAppointments:
+		ids := make([]ent.Value, 0, len(m.appointments))
+		for id := range m.appointments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SurveyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedprompts != nil {
 		edges = append(edges, survey.EdgePrompts)
 	}
 	if m.removedfeedbacks != nil {
 		edges = append(edges, survey.EdgeFeedbacks)
+	}
+	if m.removedappointments != nil {
+		edges = append(edges, survey.EdgeAppointments)
 	}
 	return edges
 }
@@ -5309,18 +5605,27 @@ func (m *SurveyMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case survey.EdgeAppointments:
+		ids := make([]ent.Value, 0, len(m.removedappointments))
+		for id := range m.removedappointments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SurveyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedprompts {
 		edges = append(edges, survey.EdgePrompts)
 	}
 	if m.clearedfeedbacks {
 		edges = append(edges, survey.EdgeFeedbacks)
+	}
+	if m.clearedappointments {
+		edges = append(edges, survey.EdgeAppointments)
 	}
 	return edges
 }
@@ -5333,6 +5638,8 @@ func (m *SurveyMutation) EdgeCleared(name string) bool {
 		return m.clearedprompts
 	case survey.EdgeFeedbacks:
 		return m.clearedfeedbacks
+	case survey.EdgeAppointments:
+		return m.clearedappointments
 	}
 	return false
 }
@@ -5354,6 +5661,9 @@ func (m *SurveyMutation) ResetEdge(name string) error {
 		return nil
 	case survey.EdgeFeedbacks:
 		m.ResetFeedbacks()
+		return nil
+	case survey.EdgeAppointments:
+		m.ResetAppointments()
 		return nil
 	}
 	return fmt.Errorf("unknown Survey edge %s", name)

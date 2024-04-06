@@ -299,12 +299,12 @@ func (prq *PromptResponseQuery) WithFeedback(opts ...func(*FeedbackQuery)) *Prom
 // Example:
 //
 //	var v []struct {
-//		PromptIndex int `json:"prompt_index,omitempty"`
+//		ParsedTemplate string `json:"parsed_template,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.PromptResponse.Query().
-//		GroupBy(promptresponse.FieldPromptIndex).
+//		GroupBy(promptresponse.FieldParsedTemplate).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (prq *PromptResponseQuery) GroupBy(field string, fields ...string) *PromptResponseGroupBy {
@@ -322,11 +322,11 @@ func (prq *PromptResponseQuery) GroupBy(field string, fields ...string) *PromptR
 // Example:
 //
 //	var v []struct {
-//		PromptIndex int `json:"prompt_index,omitempty"`
+//		ParsedTemplate string `json:"parsed_template,omitempty"`
 //	}
 //
 //	client.PromptResponse.Query().
-//		Select(promptresponse.FieldPromptIndex).
+//		Select(promptresponse.FieldParsedTemplate).
 //		Scan(ctx, &v)
 func (prq *PromptResponseQuery) Select(fields ...string) *PromptResponseSelect {
 	prq.ctx.Fields = append(prq.ctx.Fields, fields...)

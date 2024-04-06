@@ -19,7 +19,11 @@ func init() {
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 	dbDomain := os.Getenv("POSTGRES_DOMAIN")
 	dbPort := os.Getenv("POSTGRES_PORT")
-	db, err := sql.Open("pgx", fmt.Sprintf("postgresql://%s:%s@%s:%s/postgres",dbUser, dbPassword,dbDomain,dbPort))
+
+	connString := fmt.Sprintf("postgresql://%s:%s@%s:%s/postgres",dbUser, dbPassword,dbDomain,dbPort)
+
+	log.Printf("The db connection string: %s", connString)
+	db, err := sql.Open("pgx", connString)
     if err != nil {
         log.Fatal(err)
     }

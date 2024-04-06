@@ -66,7 +66,7 @@ func init() {
 	promptresponseFields := schema.PromptResponse{}.Fields()
 	_ = promptresponseFields
 	// promptresponseDescPromptIndex is the schema descriptor for prompt_index field.
-	promptresponseDescPromptIndex := promptresponseFields[1].Descriptor()
+	promptresponseDescPromptIndex := promptresponseFields[2].Descriptor()
 	// promptresponse.PromptIndexValidator is a validator for the "prompt_index" field. It is called by the builders before save.
 	promptresponse.PromptIndexValidator = promptresponseDescPromptIndex.Validators[0].(func(int) error)
 	// promptresponseDescID is the schema descriptor for id field.

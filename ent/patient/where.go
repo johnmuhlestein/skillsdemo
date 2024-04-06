@@ -61,9 +61,9 @@ func Gender(v string) predicate.Patient {
 	return predicate.Patient(sql.FieldEQ(FieldGender, v))
 }
 
-// Birtdate applies equality check predicate on the "birtdate" field. It's identical to BirtdateEQ.
-func Birtdate(v time.Time) predicate.Patient {
-	return predicate.Patient(sql.FieldEQ(FieldBirtdate, v))
+// Birthdate applies equality check predicate on the "birthdate" field. It's identical to BirthdateEQ.
+func Birthdate(v time.Time) predicate.Patient {
+	return predicate.Patient(sql.FieldEQ(FieldBirthdate, v))
 }
 
 // GenderEQ applies the EQ predicate on the "gender" field.
@@ -131,54 +131,54 @@ func GenderContainsFold(v string) predicate.Patient {
 	return predicate.Patient(sql.FieldContainsFold(FieldGender, v))
 }
 
-// BirtdateEQ applies the EQ predicate on the "birtdate" field.
-func BirtdateEQ(v time.Time) predicate.Patient {
-	return predicate.Patient(sql.FieldEQ(FieldBirtdate, v))
+// BirthdateEQ applies the EQ predicate on the "birthdate" field.
+func BirthdateEQ(v time.Time) predicate.Patient {
+	return predicate.Patient(sql.FieldEQ(FieldBirthdate, v))
 }
 
-// BirtdateNEQ applies the NEQ predicate on the "birtdate" field.
-func BirtdateNEQ(v time.Time) predicate.Patient {
-	return predicate.Patient(sql.FieldNEQ(FieldBirtdate, v))
+// BirthdateNEQ applies the NEQ predicate on the "birthdate" field.
+func BirthdateNEQ(v time.Time) predicate.Patient {
+	return predicate.Patient(sql.FieldNEQ(FieldBirthdate, v))
 }
 
-// BirtdateIn applies the In predicate on the "birtdate" field.
-func BirtdateIn(vs ...time.Time) predicate.Patient {
-	return predicate.Patient(sql.FieldIn(FieldBirtdate, vs...))
+// BirthdateIn applies the In predicate on the "birthdate" field.
+func BirthdateIn(vs ...time.Time) predicate.Patient {
+	return predicate.Patient(sql.FieldIn(FieldBirthdate, vs...))
 }
 
-// BirtdateNotIn applies the NotIn predicate on the "birtdate" field.
-func BirtdateNotIn(vs ...time.Time) predicate.Patient {
-	return predicate.Patient(sql.FieldNotIn(FieldBirtdate, vs...))
+// BirthdateNotIn applies the NotIn predicate on the "birthdate" field.
+func BirthdateNotIn(vs ...time.Time) predicate.Patient {
+	return predicate.Patient(sql.FieldNotIn(FieldBirthdate, vs...))
 }
 
-// BirtdateGT applies the GT predicate on the "birtdate" field.
-func BirtdateGT(v time.Time) predicate.Patient {
-	return predicate.Patient(sql.FieldGT(FieldBirtdate, v))
+// BirthdateGT applies the GT predicate on the "birthdate" field.
+func BirthdateGT(v time.Time) predicate.Patient {
+	return predicate.Patient(sql.FieldGT(FieldBirthdate, v))
 }
 
-// BirtdateGTE applies the GTE predicate on the "birtdate" field.
-func BirtdateGTE(v time.Time) predicate.Patient {
-	return predicate.Patient(sql.FieldGTE(FieldBirtdate, v))
+// BirthdateGTE applies the GTE predicate on the "birthdate" field.
+func BirthdateGTE(v time.Time) predicate.Patient {
+	return predicate.Patient(sql.FieldGTE(FieldBirthdate, v))
 }
 
-// BirtdateLT applies the LT predicate on the "birtdate" field.
-func BirtdateLT(v time.Time) predicate.Patient {
-	return predicate.Patient(sql.FieldLT(FieldBirtdate, v))
+// BirthdateLT applies the LT predicate on the "birthdate" field.
+func BirthdateLT(v time.Time) predicate.Patient {
+	return predicate.Patient(sql.FieldLT(FieldBirthdate, v))
 }
 
-// BirtdateLTE applies the LTE predicate on the "birtdate" field.
-func BirtdateLTE(v time.Time) predicate.Patient {
-	return predicate.Patient(sql.FieldLTE(FieldBirtdate, v))
+// BirthdateLTE applies the LTE predicate on the "birthdate" field.
+func BirthdateLTE(v time.Time) predicate.Patient {
+	return predicate.Patient(sql.FieldLTE(FieldBirthdate, v))
 }
 
-// BirtdateIsNil applies the IsNil predicate on the "birtdate" field.
-func BirtdateIsNil() predicate.Patient {
-	return predicate.Patient(sql.FieldIsNull(FieldBirtdate))
+// BirthdateIsNil applies the IsNil predicate on the "birthdate" field.
+func BirthdateIsNil() predicate.Patient {
+	return predicate.Patient(sql.FieldIsNull(FieldBirthdate))
 }
 
-// BirtdateNotNil applies the NotNil predicate on the "birtdate" field.
-func BirtdateNotNil() predicate.Patient {
-	return predicate.Patient(sql.FieldNotNull(FieldBirtdate))
+// BirthdateNotNil applies the NotNil predicate on the "birthdate" field.
+func BirthdateNotNil() predicate.Patient {
+	return predicate.Patient(sql.FieldNotNull(FieldBirthdate))
 }
 
 // ContactIsNil applies the IsNil predicate on the "contact" field.

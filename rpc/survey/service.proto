@@ -5,6 +5,9 @@ option go_package = "rpc/survey";
 
 service Survey {
     rpc CreateSurvey(CreateSurveyReq) returns (SurveyResp);
+    rpc UpdateSurveyStatus(SurveyStatusReq) returns (SurveyResp);
+    rpc UpdateAppointmentStatus(AppointmentStatusReq) returns (FeedbackResp);
+    rpc GetFeedback(IdReq) returns (FeedbackResp);
 }
 
 enum SurveyStatus {
@@ -19,6 +22,10 @@ enum MeasureType {
     boolean = 2;
     enumeration = 3;
     multiflag = 4;
+}
+
+message IdReq {
+    string id = 1;
 }
 
 message MeasureRange {
@@ -88,9 +95,33 @@ message Prompt {
 
 message Measure {
     MeasureType type = 1;
-    MeasureRange range = 10;
-    MeasureBoolean boolean = 11;
-    repeated MeasureEnum enumeration = 12;
-    repeated MeasureFlags flags = 13;
+    MeasureRange range = 2;
+    MeasureBoolean boolean = 3;
+    repeated MeasureEnum enumeration = 4;
+    repeated MeasureFlags flags = 5;
 
+}
+
+message AppointmentStatusReq {
+    string id = 1;
+    string status = 2;
+}
+
+message FeedbackResp {
+    string id = 1;
+    string status = 2;
+    repeated FbResponses responses = 3;
+}
+
+message FbResponses {
+    string id = 1;
+    string parsed_template = 2;
+    int32 survey_index = 3;
+    string status = 4; //new or complete - relates to the completion time from the db
+    MeasureType type = 5;
+    MeasureRange range = 6;
+    MeasureBoolean boolean = 7;
+    MeasureEnum enumeration = 8;
+    string freeform_value = 9;
+    repeated MeasureFlags flags = 10;
 }

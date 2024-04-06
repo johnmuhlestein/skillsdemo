@@ -1,12 +1,16 @@
 package surveyserver
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"log"
+	"text/template"
 	"time"
 
 	"skillsdemo/ent"
+	"skillsdemo/ent/appointment"
+	"skillsdemo/ent/feedback"
 	"skillsdemo/ent/schema"
 	"skillsdemo/ent/survey"
 	"skillsdemo/internal/database"
@@ -26,24 +30,6 @@ func (s *Server) CreateSurvey (ctx context.Context, req *pb.CreateSurveyReq) (*p
 		return nil, twirp.InternalError("An error occured attempting to create the new survey")
 	}
 	resp := wrapSurvey(ctx, survey)
-/*
-	resp := &pb.SurveyResp{
-		Id: uuid.New().String(),
-		Title: req.Title,
-		Description: req.Description,
-		Status: req.Status,
-	}
-	for _, p  := range req.Prompts {
-		resp.Prompts = append(resp.Prompts, &pb.Prompt{
-			Id: uuid.New().String(),
-			Index: p.Index,
-			Title: p.Title,
-			Description: p.Description,
-			ResponseType: p.ResponseType,
-			AllowAdditionalFeedback: p.AllowAdditionalFeedback,
-		})
-	}
-*/
 	return resp,nil
 }
 
@@ -52,13 +38,17 @@ func (s *Server) UpdateSurveyStatus(ctx context.Context, req *pb.SurveyStatusReq
 	if err != nil {
 		return nil, twirp.InvalidArgument.Errorf("The survey id [%s] is not a valid uuid", req.Id)
 	}
-	qSurvey, err := database.EntClient.Survey.Query().Where(survey.IDEQ(uuid)).First(ctx)
+	qSurvey, err := database.EntClient.Survey.Get(ctx,uuid)
 	if errors.Is(err, &ent.NotFoundError{}) {
 		return nil, twirp.NotFound.Errorf("The survey id [%s] was not found", req.Id)
 	}
 	switch req.Status {
 		case pb.SurveyStatus_active: 
-			qSurvey, err = qSurvey.Update().SetStatus(survey.Status(req.Status.String())).SetActiveTime(time.Now()).Save(ctx)
+			if qSurvey.Status != survey.StatusArchived {
+				qSurvey, err = qSurvey.Update().SetStatus(survey.Status(req.Status.String())).SetActiveTime(time.Now()).Save(ctx)
+			} else {
+				return nil, twirp.InvalidArgument.Errorf("You can not transition a survey from 'archived' to 'active'")
+			}
 		case pb.SurveyStatus_archived:
 			qSurvey, err = qSurvey.Update().SetStatus(survey.Status(req.Status.String())).SetArchiveTime(time.Now()).Save(ctx)
 		case pb.SurveyStatus_unpublished:
@@ -69,6 +59,92 @@ func (s *Server) UpdateSurveyStatus(ctx context.Context, req *pb.SurveyStatusReq
 		return nil, twirp.InternalError("Unable to update status")
 	}
 	return wrapSurvey(ctx, qSurvey), nil
+}
+
+func (s *Server) GetFeedback(ctx context.Context, req *pb.IdReq)  (*pb.FeedbackResp, error) {
+	feedbackResp := pb.FeedbackResp{}
+	uuid, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, twirp.InvalidArgument.Errorf("The survey id [%s] is not a valid uuid", req.Id)
+	}
+	qFeedback, err := database.EntClient.Feedback.Query().Where(feedback.IDEQ(uuid)).WithResponses().WithSurvey().WithPatient().First(ctx)
+	if errors.Is(err, &ent.NotFoundError{}) {
+		return nil, twirp.NotFound.Errorf("The feedback id=[%s] was not found", req.Id)
+	}
+
+	feedbackResp = *mapDbFeedback(qFeedback)
+	return &feedbackResp, nil
+}
+
+func (s *Server) UpdateAppointmentStatus(ctx context.Context, req *pb.AppointmentStatusReq) (*pb.FeedbackResp, error) {
+	uuid, err := uuid.Parse(req.Id)
+	feedbackResp := pb.FeedbackResp{}
+	if err != nil {
+		return nil, twirp.InvalidArgument.Errorf("The survey id [%s] is not a valid uuid", req.Id)
+	}
+	qAppt, err := database.EntClient.Appointment.Get(ctx,uuid)
+	if errors.Is(err, &ent.NotFoundError{}) {
+		return nil, twirp.NotFound.Errorf("The survey id [%s] was not found", req.Id)
+	}
+	_, err = qAppt.Update().SetStatus(req.Status).Save(ctx)
+		if err != nil {
+		log.Printf("Failed to update Appointment %s to a new status %s - %v\n", req.Id, req.Status, err)
+		return nil, twirp.InternalError("Unable to update status")
+	}
+
+	//eager fetch to populate the relationships
+	eagerAppt, err := database.EntClient.Appointment.Query().Where(appointment.IDEQ(uuid)).WithDiagnoses().WithPatient().WithProvider().First(ctx)
+	if err != nil {
+		log.Printf("Failed to retrieve the eager Appointment %s to a new status %s - %v\n", req.Id, req.Status, err)
+		return nil, twirp.InternalError("Unable to update status")
+	}
+	theSurvey, err := database.EntClient.Appointment.Query().Where(appointment.IDEQ(uuid)).QuerySurvey().WithPrompts().First(ctx)
+	if err != nil {
+		log.Printf("Failed to retrieve the survey associated with the appointment %s to a new status %s - %v\n", req.Id, req.Status, err)
+		return nil, twirp.InternalError("Unable to update status")
+	}
+	parsedMap := make(map[int]string)
+	for _, i := range theSurvey.Edges.Prompts {
+		log.Printf("The diagnosis name: %s",eagerAppt.Edges.Diagnoses[0].Code.Coding[0].Name)
+		p := parseTemplate(i.Description, eagerAppt)
+		parsedMap[i.SortOrder] = p
+	}
+
+	feedbackEnt, err := database.EntClient.Feedback.Create().SetStatus("created").SetPatientID(eagerAppt.Edges.Patient.ID).SetSurvey(theSurvey).Save(ctx)
+	if err != nil {
+		log.Printf("Failed to create new Feedback for Appointment %s - %v\n", req.Id, err)
+		return nil, twirp.InternalError("Unable to update status")
+	}
+
+	feedbackResp.Id = feedbackEnt.ID.String()
+	feedbackResp.Status = feedbackEnt.Status
+
+	for i, v := range parsedMap {
+		resp, err := database.EntClient.PromptResponse.Create().SetParsedTemplate(v).SetPromptIndex(i).SetFeedback(feedbackEnt).Save(ctx)
+		if err != nil {
+			log.Printf("Failed to create new Prompt Response for Feedback %s - %v\n", feedbackEnt.ID.String(), err)
+			return nil, twirp.InternalError("Unable to update status")
+		}
+		feedbackResp.Responses = append(feedbackResp.Responses, &pb.FbResponses{Id: resp.ID.String(), ParsedTemplate: v, SurveyIndex: int32(i), Status: "new"})
+	} 
+
+	return &feedbackResp, nil
+}
+
+func parseTemplate(tmplt string, appt *ent.Appointment) string {
+	tmpl := template.New("prompt")
+	tmpl, err := tmpl.Parse(tmplt)
+	if err != nil {
+		log.Printf("Unable to parse the prompt template %s - %v\n", tmplt, err)
+		return tmplt
+	}
+	buf := &bytes.Buffer{}
+	err = tmpl.Execute(buf, appt)
+	if err != nil {
+		log.Printf("Unable to execute the template binding the prompt template %s - %v\n", tmplt, err)
+		return tmplt
+	}
+	return buf.String()
 }
 
 func wrapSurvey(ctx context.Context, s *ent.Survey) *pb.SurveyResp {

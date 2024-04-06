@@ -16,12 +16,14 @@ type PromptResponse struct {
 func (PromptResponse) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.String("parsed_template"),
 		field.Int("prompt_index").Positive(),
 		field.Int("range_value").Optional(),
 		field.String("bool_value").Optional(),
 		field.JSON("enum_value", MeasureEnum{}).Optional(),
 		field.JSON("label_values", []string{}).Optional(),
 		field.String("freeform_value").Optional(),
+		field.Time("answered_time").Optional(),
 	}
 }
 

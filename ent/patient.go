@@ -24,8 +24,8 @@ type Patient struct {
 	Name schema.Name `json:"name,omitempty"`
 	// Gender holds the value of the "gender" field.
 	Gender string `json:"gender,omitempty"`
-	// Birtdate holds the value of the "birtdate" field.
-	Birtdate time.Time `json:"birtdate,omitempty"`
+	// Birthdate holds the value of the "birthdate" field.
+	Birthdate time.Time `json:"birthdate,omitempty"`
 	// Contact holds the value of the "contact" field.
 	Contact []schema.Contact `json:"contact,omitempty"`
 	// Address holds the value of the "address" field.
@@ -74,7 +74,7 @@ func (*Patient) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case patient.FieldGender:
 			values[i] = new(sql.NullString)
-		case patient.FieldBirtdate:
+		case patient.FieldBirthdate:
 			values[i] = new(sql.NullTime)
 		case patient.FieldID:
 			values[i] = new(uuid.UUID)
@@ -113,11 +113,11 @@ func (pa *Patient) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pa.Gender = value.String
 			}
-		case patient.FieldBirtdate:
+		case patient.FieldBirthdate:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field birtdate", values[i])
+				return fmt.Errorf("unexpected type %T for field birthdate", values[i])
 			} else if value.Valid {
-				pa.Birtdate = value.Time
+				pa.Birthdate = value.Time
 			}
 		case patient.FieldContact:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -187,8 +187,8 @@ func (pa *Patient) String() string {
 	builder.WriteString("gender=")
 	builder.WriteString(pa.Gender)
 	builder.WriteString(", ")
-	builder.WriteString("birtdate=")
-	builder.WriteString(pa.Birtdate.Format(time.ANSIC))
+	builder.WriteString("birthdate=")
+	builder.WriteString(pa.Birthdate.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("contact=")
 	builder.WriteString(fmt.Sprintf("%v", pa.Contact))

@@ -15,6 +15,7 @@ var (
 		{Name: "period", Type: field.TypeJSON},
 		{Name: "patient_appointments", Type: field.TypeUUID, Nullable: true},
 		{Name: "provider_appointments", Type: field.TypeUUID, Nullable: true},
+		{Name: "survey_appointments", Type: field.TypeUUID, Nullable: true},
 	}
 	// AppointmentsTable holds the schema information for the "appointments" table.
 	AppointmentsTable = &schema.Table{
@@ -32,6 +33,12 @@ var (
 				Symbol:     "appointments_providers_appointments",
 				Columns:    []*schema.Column{AppointmentsColumns[4]},
 				RefColumns: []*schema.Column{ProvidersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "appointments_surveys_appointments",
+				Columns:    []*schema.Column{AppointmentsColumns[5]},
+				RefColumns: []*schema.Column{SurveysColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -53,8 +60,8 @@ var (
 	FeedbacksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "status", Type: field.TypeString},
-		{Name: "start_time", Type: field.TypeTime},
-		{Name: "completion_time", Type: field.TypeTime},
+		{Name: "start_time", Type: field.TypeTime, Nullable: true},
+		{Name: "completion_time", Type: field.TypeTime, Nullable: true},
 		{Name: "patient_feedbacks", Type: field.TypeUUID, Nullable: true},
 		{Name: "survey_feedbacks", Type: field.TypeUUID, Nullable: true},
 	}
@@ -83,7 +90,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeJSON},
 		{Name: "gender", Type: field.TypeString},
-		{Name: "birtdate", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "date"}},
+		{Name: "birthdate", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "date"}},
 		{Name: "contact", Type: field.TypeJSON, Nullable: true},
 		{Name: "address", Type: field.TypeJSON, Nullable: true},
 	}
@@ -120,12 +127,14 @@ var (
 	// PromptResponsesColumns holds the columns for the "prompt_responses" table.
 	PromptResponsesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
+		{Name: "parsed_template", Type: field.TypeString},
 		{Name: "prompt_index", Type: field.TypeInt},
 		{Name: "range_value", Type: field.TypeInt, Nullable: true},
 		{Name: "bool_value", Type: field.TypeString, Nullable: true},
 		{Name: "enum_value", Type: field.TypeJSON, Nullable: true},
 		{Name: "label_values", Type: field.TypeJSON, Nullable: true},
 		{Name: "freeform_value", Type: field.TypeString, Nullable: true},
+		{Name: "answered_time", Type: field.TypeTime, Nullable: true},
 		{Name: "feedback_responses", Type: field.TypeUUID, Nullable: true},
 	}
 	// PromptResponsesTable holds the schema information for the "prompt_responses" table.
@@ -136,7 +145,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "prompt_responses_feedbacks_responses",
-				Columns:    []*schema.Column{PromptResponsesColumns[7]},
+				Columns:    []*schema.Column{PromptResponsesColumns[9]},
 				RefColumns: []*schema.Column{FeedbacksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -210,6 +219,7 @@ var (
 func init() {
 	AppointmentsTable.ForeignKeys[0].RefTable = PatientsTable
 	AppointmentsTable.ForeignKeys[1].RefTable = ProvidersTable
+	AppointmentsTable.ForeignKeys[2].RefTable = SurveysTable
 	FeedbacksTable.ForeignKeys[0].RefTable = PatientsTable
 	FeedbacksTable.ForeignKeys[1].RefTable = SurveysTable
 	PromptsTable.ForeignKeys[0].RefTable = SurveysTable

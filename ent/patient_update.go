@@ -61,23 +61,23 @@ func (pu *PatientUpdate) SetNillableGender(s *string) *PatientUpdate {
 	return pu
 }
 
-// SetBirtdate sets the "birtdate" field.
-func (pu *PatientUpdate) SetBirtdate(t time.Time) *PatientUpdate {
-	pu.mutation.SetBirtdate(t)
+// SetBirthdate sets the "birthdate" field.
+func (pu *PatientUpdate) SetBirthdate(t time.Time) *PatientUpdate {
+	pu.mutation.SetBirthdate(t)
 	return pu
 }
 
-// SetNillableBirtdate sets the "birtdate" field if the given value is not nil.
-func (pu *PatientUpdate) SetNillableBirtdate(t *time.Time) *PatientUpdate {
+// SetNillableBirthdate sets the "birthdate" field if the given value is not nil.
+func (pu *PatientUpdate) SetNillableBirthdate(t *time.Time) *PatientUpdate {
 	if t != nil {
-		pu.SetBirtdate(*t)
+		pu.SetBirthdate(*t)
 	}
 	return pu
 }
 
-// ClearBirtdate clears the value of the "birtdate" field.
-func (pu *PatientUpdate) ClearBirtdate() *PatientUpdate {
-	pu.mutation.ClearBirtdate()
+// ClearBirthdate clears the value of the "birthdate" field.
+func (pu *PatientUpdate) ClearBirthdate() *PatientUpdate {
+	pu.mutation.ClearBirthdate()
 	return pu
 }
 
@@ -236,11 +236,11 @@ func (pu *PatientUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Gender(); ok {
 		_spec.SetField(patient.FieldGender, field.TypeString, value)
 	}
-	if value, ok := pu.mutation.Birtdate(); ok {
-		_spec.SetField(patient.FieldBirtdate, field.TypeTime, value)
+	if value, ok := pu.mutation.Birthdate(); ok {
+		_spec.SetField(patient.FieldBirthdate, field.TypeTime, value)
 	}
-	if pu.mutation.BirtdateCleared() {
-		_spec.ClearField(patient.FieldBirtdate, field.TypeTime)
+	if pu.mutation.BirthdateCleared() {
+		_spec.ClearField(patient.FieldBirthdate, field.TypeTime)
 	}
 	if value, ok := pu.mutation.Contact(); ok {
 		_spec.SetField(patient.FieldContact, field.TypeJSON, value)
@@ -402,23 +402,23 @@ func (puo *PatientUpdateOne) SetNillableGender(s *string) *PatientUpdateOne {
 	return puo
 }
 
-// SetBirtdate sets the "birtdate" field.
-func (puo *PatientUpdateOne) SetBirtdate(t time.Time) *PatientUpdateOne {
-	puo.mutation.SetBirtdate(t)
+// SetBirthdate sets the "birthdate" field.
+func (puo *PatientUpdateOne) SetBirthdate(t time.Time) *PatientUpdateOne {
+	puo.mutation.SetBirthdate(t)
 	return puo
 }
 
-// SetNillableBirtdate sets the "birtdate" field if the given value is not nil.
-func (puo *PatientUpdateOne) SetNillableBirtdate(t *time.Time) *PatientUpdateOne {
+// SetNillableBirthdate sets the "birthdate" field if the given value is not nil.
+func (puo *PatientUpdateOne) SetNillableBirthdate(t *time.Time) *PatientUpdateOne {
 	if t != nil {
-		puo.SetBirtdate(*t)
+		puo.SetBirthdate(*t)
 	}
 	return puo
 }
 
-// ClearBirtdate clears the value of the "birtdate" field.
-func (puo *PatientUpdateOne) ClearBirtdate() *PatientUpdateOne {
-	puo.mutation.ClearBirtdate()
+// ClearBirthdate clears the value of the "birthdate" field.
+func (puo *PatientUpdateOne) ClearBirthdate() *PatientUpdateOne {
+	puo.mutation.ClearBirthdate()
 	return puo
 }
 
@@ -607,11 +607,11 @@ func (puo *PatientUpdateOne) sqlSave(ctx context.Context) (_node *Patient, err e
 	if value, ok := puo.mutation.Gender(); ok {
 		_spec.SetField(patient.FieldGender, field.TypeString, value)
 	}
-	if value, ok := puo.mutation.Birtdate(); ok {
-		_spec.SetField(patient.FieldBirtdate, field.TypeTime, value)
+	if value, ok := puo.mutation.Birthdate(); ok {
+		_spec.SetField(patient.FieldBirthdate, field.TypeTime, value)
 	}
-	if puo.mutation.BirtdateCleared() {
-		_spec.ClearField(patient.FieldBirtdate, field.TypeTime)
+	if puo.mutation.BirthdateCleared() {
+		_spec.ClearField(patient.FieldBirthdate, field.TypeTime)
 	}
 	if value, ok := puo.mutation.Contact(); ok {
 		_spec.SetField(patient.FieldContact, field.TypeJSON, value)

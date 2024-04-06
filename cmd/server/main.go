@@ -2,26 +2,21 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"net/http"
-	"skillsdemo/ent"
 	"skillsdemo/ent/migrate"
+	"skillsdemo/internal/database"
 	"skillsdemo/internal/surveyserver"
 	"skillsdemo/rpc/survey"
 
-	"entgo.io/ent/dialect"
-	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
-	client := Open("postgresql://john:DonaldDuck@localhost:5433/postgres")
 
-	defer client.Close()
-    // Your code. For example:
+	// Your code. For example:
     ctx := context.Background()
-    if err := client.Debug().Schema.Create(ctx,migrate.WithDropIndex(true),migrate.WithDropColumn(true)); err != nil {
+    if err := database.EntClient.Debug().Schema.Create(ctx,migrate.WithDropIndex(true),migrate.WithDropColumn(true)); err != nil {
         log.Fatal(err)
     }
 	log.Println("Successfully deployed database schema")
@@ -33,6 +28,7 @@ func main() {
 }
 
 // Open new connection
+/*
 func Open(databaseUrl string) *ent.Client {
     db, err := sql.Open("pgx", databaseUrl)
     if err != nil {
@@ -43,3 +39,4 @@ func Open(databaseUrl string) *ent.Client {
     drv := entsql.OpenDB(dialect.Postgres, db)
     return ent.NewClient(ent.Driver(drv))
 }
+*/

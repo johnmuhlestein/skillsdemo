@@ -17,8 +17,8 @@ const (
 	FieldName = "name"
 	// FieldGender holds the string denoting the gender field in the database.
 	FieldGender = "gender"
-	// FieldBirtdate holds the string denoting the birtdate field in the database.
-	FieldBirtdate = "birtdate"
+	// FieldBirthdate holds the string denoting the birthdate field in the database.
+	FieldBirthdate = "birthdate"
 	// FieldContact holds the string denoting the contact field in the database.
 	FieldContact = "contact"
 	// FieldAddress holds the string denoting the address field in the database.
@@ -50,7 +50,7 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldGender,
-	FieldBirtdate,
+	FieldBirthdate,
 	FieldContact,
 	FieldAddress,
 }
@@ -83,9 +83,9 @@ func ByGender(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGender, opts...).ToFunc()
 }
 
-// ByBirtdate orders the results by the birtdate field.
-func ByBirtdate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldBirtdate, opts...).ToFunc()
+// ByBirthdate orders the results by the birthdate field.
+func ByBirthdate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBirthdate, opts...).ToFunc()
 }
 
 // ByAppointmentsCount orders the results by appointments count.

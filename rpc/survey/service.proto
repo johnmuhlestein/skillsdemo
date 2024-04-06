@@ -5,7 +5,9 @@ option go_package = "rpc/survey";
 
 service Survey {
     rpc CreateSurvey(CreateSurveyReq) returns (SurveyResp);
+    rpc UpdateSurveyStatus(SurveyStatusReq) returns (SurveyResp);
     rpc UpdateAppointmentStatus(AppointmentStatusReq) returns (FeedbackResp);
+    rpc GetFeedback(IdReq) returns (FeedbackResp);
 }
 
 enum SurveyStatus {
@@ -20,6 +22,10 @@ enum MeasureType {
     boolean = 2;
     enumeration = 3;
     multiflag = 4;
+}
+
+message IdReq {
+    string id = 1;
 }
 
 message MeasureRange {

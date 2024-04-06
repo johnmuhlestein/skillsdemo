@@ -90,7 +90,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeJSON},
 		{Name: "gender", Type: field.TypeString},
-		{Name: "birtdate", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "date"}},
+		{Name: "birthdate", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "date"}},
 		{Name: "contact", Type: field.TypeJSON, Nullable: true},
 		{Name: "address", Type: field.TypeJSON, Nullable: true},
 	}

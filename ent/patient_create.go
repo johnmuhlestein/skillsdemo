@@ -36,16 +36,16 @@ func (pc *PatientCreate) SetGender(s string) *PatientCreate {
 	return pc
 }
 
-// SetBirtdate sets the "birtdate" field.
-func (pc *PatientCreate) SetBirtdate(t time.Time) *PatientCreate {
-	pc.mutation.SetBirtdate(t)
+// SetBirthdate sets the "birthdate" field.
+func (pc *PatientCreate) SetBirthdate(t time.Time) *PatientCreate {
+	pc.mutation.SetBirthdate(t)
 	return pc
 }
 
-// SetNillableBirtdate sets the "birtdate" field if the given value is not nil.
-func (pc *PatientCreate) SetNillableBirtdate(t *time.Time) *PatientCreate {
+// SetNillableBirthdate sets the "birthdate" field if the given value is not nil.
+func (pc *PatientCreate) SetNillableBirthdate(t *time.Time) *PatientCreate {
 	if t != nil {
-		pc.SetBirtdate(*t)
+		pc.SetBirthdate(*t)
 	}
 	return pc
 }
@@ -198,9 +198,9 @@ func (pc *PatientCreate) createSpec() (*Patient, *sqlgraph.CreateSpec) {
 		_spec.SetField(patient.FieldGender, field.TypeString, value)
 		_node.Gender = value
 	}
-	if value, ok := pc.mutation.Birtdate(); ok {
-		_spec.SetField(patient.FieldBirtdate, field.TypeTime, value)
-		_node.Birtdate = value
+	if value, ok := pc.mutation.Birthdate(); ok {
+		_spec.SetField(patient.FieldBirthdate, field.TypeTime, value)
+		_node.Birthdate = value
 	}
 	if value, ok := pc.mutation.Contact(); ok {
 		_spec.SetField(patient.FieldContact, field.TypeJSON, value)

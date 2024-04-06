@@ -1932,7 +1932,7 @@ type PatientMutation struct {
 	id                  *uuid.UUID
 	name                *schema.Name
 	gender              *string
-	birtdate            *time.Time
+	birthdate           *time.Time
 	contact             *[]schema.Contact
 	appendcontact       []schema.Contact
 	address             *[]schema.Address
@@ -2125,53 +2125,53 @@ func (m *PatientMutation) ResetGender() {
 	m.gender = nil
 }
 
-// SetBirtdate sets the "birtdate" field.
-func (m *PatientMutation) SetBirtdate(t time.Time) {
-	m.birtdate = &t
+// SetBirthdate sets the "birthdate" field.
+func (m *PatientMutation) SetBirthdate(t time.Time) {
+	m.birthdate = &t
 }
 
-// Birtdate returns the value of the "birtdate" field in the mutation.
-func (m *PatientMutation) Birtdate() (r time.Time, exists bool) {
-	v := m.birtdate
+// Birthdate returns the value of the "birthdate" field in the mutation.
+func (m *PatientMutation) Birthdate() (r time.Time, exists bool) {
+	v := m.birthdate
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldBirtdate returns the old "birtdate" field's value of the Patient entity.
+// OldBirthdate returns the old "birthdate" field's value of the Patient entity.
 // If the Patient object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PatientMutation) OldBirtdate(ctx context.Context) (v time.Time, err error) {
+func (m *PatientMutation) OldBirthdate(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBirtdate is only allowed on UpdateOne operations")
+		return v, errors.New("OldBirthdate is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBirtdate requires an ID field in the mutation")
+		return v, errors.New("OldBirthdate requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBirtdate: %w", err)
+		return v, fmt.Errorf("querying old value for OldBirthdate: %w", err)
 	}
-	return oldValue.Birtdate, nil
+	return oldValue.Birthdate, nil
 }
 
-// ClearBirtdate clears the value of the "birtdate" field.
-func (m *PatientMutation) ClearBirtdate() {
-	m.birtdate = nil
-	m.clearedFields[patient.FieldBirtdate] = struct{}{}
+// ClearBirthdate clears the value of the "birthdate" field.
+func (m *PatientMutation) ClearBirthdate() {
+	m.birthdate = nil
+	m.clearedFields[patient.FieldBirthdate] = struct{}{}
 }
 
-// BirtdateCleared returns if the "birtdate" field was cleared in this mutation.
-func (m *PatientMutation) BirtdateCleared() bool {
-	_, ok := m.clearedFields[patient.FieldBirtdate]
+// BirthdateCleared returns if the "birthdate" field was cleared in this mutation.
+func (m *PatientMutation) BirthdateCleared() bool {
+	_, ok := m.clearedFields[patient.FieldBirthdate]
 	return ok
 }
 
-// ResetBirtdate resets all changes to the "birtdate" field.
-func (m *PatientMutation) ResetBirtdate() {
-	m.birtdate = nil
-	delete(m.clearedFields, patient.FieldBirtdate)
+// ResetBirthdate resets all changes to the "birthdate" field.
+func (m *PatientMutation) ResetBirthdate() {
+	m.birthdate = nil
+	delete(m.clearedFields, patient.FieldBirthdate)
 }
 
 // SetContact sets the "contact" field.
@@ -2453,8 +2453,8 @@ func (m *PatientMutation) Fields() []string {
 	if m.gender != nil {
 		fields = append(fields, patient.FieldGender)
 	}
-	if m.birtdate != nil {
-		fields = append(fields, patient.FieldBirtdate)
+	if m.birthdate != nil {
+		fields = append(fields, patient.FieldBirthdate)
 	}
 	if m.contact != nil {
 		fields = append(fields, patient.FieldContact)
@@ -2474,8 +2474,8 @@ func (m *PatientMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case patient.FieldGender:
 		return m.Gender()
-	case patient.FieldBirtdate:
-		return m.Birtdate()
+	case patient.FieldBirthdate:
+		return m.Birthdate()
 	case patient.FieldContact:
 		return m.Contact()
 	case patient.FieldAddress:
@@ -2493,8 +2493,8 @@ func (m *PatientMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldName(ctx)
 	case patient.FieldGender:
 		return m.OldGender(ctx)
-	case patient.FieldBirtdate:
-		return m.OldBirtdate(ctx)
+	case patient.FieldBirthdate:
+		return m.OldBirthdate(ctx)
 	case patient.FieldContact:
 		return m.OldContact(ctx)
 	case patient.FieldAddress:
@@ -2522,12 +2522,12 @@ func (m *PatientMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetGender(v)
 		return nil
-	case patient.FieldBirtdate:
+	case patient.FieldBirthdate:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetBirtdate(v)
+		m.SetBirthdate(v)
 		return nil
 	case patient.FieldContact:
 		v, ok := value.([]schema.Contact)
@@ -2573,8 +2573,8 @@ func (m *PatientMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *PatientMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(patient.FieldBirtdate) {
-		fields = append(fields, patient.FieldBirtdate)
+	if m.FieldCleared(patient.FieldBirthdate) {
+		fields = append(fields, patient.FieldBirthdate)
 	}
 	if m.FieldCleared(patient.FieldContact) {
 		fields = append(fields, patient.FieldContact)
@@ -2596,8 +2596,8 @@ func (m *PatientMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *PatientMutation) ClearField(name string) error {
 	switch name {
-	case patient.FieldBirtdate:
-		m.ClearBirtdate()
+	case patient.FieldBirthdate:
+		m.ClearBirthdate()
 		return nil
 	case patient.FieldContact:
 		m.ClearContact()
@@ -2619,8 +2619,8 @@ func (m *PatientMutation) ResetField(name string) error {
 	case patient.FieldGender:
 		m.ResetGender()
 		return nil
-	case patient.FieldBirtdate:
-		m.ResetBirtdate()
+	case patient.FieldBirthdate:
+		m.ResetBirthdate()
 		return nil
 	case patient.FieldContact:
 		m.ResetContact()

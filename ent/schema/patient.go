@@ -39,7 +39,7 @@ func (Patient) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.JSON("name",Name{}),
 		field.String("gender"),
-		field.Time("birtdate").Optional().SchemaType(map[string]string{dialect.Postgres: "date"}),
+		field.Time("birthdate").Optional().SchemaType(map[string]string{dialect.Postgres: "date"}),
 		field.JSON("contact", []Contact{}).Optional(),
 		field.JSON("address", []Address{}).Optional(),
 	}

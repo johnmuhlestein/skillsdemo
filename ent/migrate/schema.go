@@ -166,7 +166,7 @@ var (
 	SurveysColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "title", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"unpublished", "active", "archived"}, Default: "unpublished"},
 		{Name: "active_time", Type: field.TypeTime, Nullable: true},
 		{Name: "archive_time", Type: field.TypeTime, Nullable: true},

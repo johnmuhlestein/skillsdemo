@@ -17,10 +17,10 @@ func (Survey) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.String("title"),
-		field.String("description"),
+		field.String("description").Optional().Nillable(),
 		field.Enum("status").Values("unpublished","active","archived").Default("unpublished"),
-		field.Time("active_time").Optional(),
-		field.Time("archive_time").Optional(),
+		field.Time("active_time").Optional().Nillable(),
+		field.Time("archive_time").Optional().Nillable(),
 	}
 }
 

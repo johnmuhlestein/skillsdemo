@@ -8,6 +8,7 @@ service Survey {
     rpc UpdateSurveyStatus(SurveyStatusReq) returns (SurveyResp);
     rpc UpdateAppointmentStatus(AppointmentStatusReq) returns (FeedbackResp);
     rpc GetFeedback(IdReq) returns (FeedbackResp);
+    rpc UpdateFeedbackResponse(FeedbackPrompt) returns (FbResponse);
 }
 
 enum SurveyStatus {
@@ -110,10 +111,21 @@ message AppointmentStatusReq {
 message FeedbackResp {
     string id = 1;
     string status = 2;
-    repeated FbResponses responses = 3;
+    repeated FbResponse responses = 3;
 }
 
-message FbResponses {
+message FeedbackPrompt {
+    string id = 1;
+    string type = 2;
+    string freeform_value = 3;
+    int32 range_value = 4;
+    string boolean_value = 5;
+    string enumeration_label_value = 6;
+    int32 enumeration_value = 7;
+    repeated string flag_values = 8;
+}
+
+message FbResponse {
     string id = 1;
     string parsed_template = 2;
     int32 survey_index = 3;
@@ -121,7 +133,12 @@ message FbResponses {
     MeasureType type = 5;
     MeasureRange range = 6;
     MeasureBoolean boolean = 7;
-    MeasureEnum enumeration = 8;
+    repeated MeasureEnum enumeration = 8;
     string freeform_value = 9;
-    repeated MeasureFlags flags = 10;
+    int32 range_value = 10;
+    string boolean_value = 11;
+    string enumeration_label_value = 12;
+    int32 enumeration_value = 13;
+    repeated MeasureFlags flags = 14;
+    repeated string flag_values = 15;
 }

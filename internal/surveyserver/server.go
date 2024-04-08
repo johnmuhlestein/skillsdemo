@@ -5,12 +5,15 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strings"
 	"text/template"
 	"time"
 
 	"skillsdemo/ent"
 	"skillsdemo/ent/appointment"
 	"skillsdemo/ent/feedback"
+	"skillsdemo/ent/prompt"
+	"skillsdemo/ent/promptresponse"
 	"skillsdemo/ent/schema"
 	"skillsdemo/ent/survey"
 	"skillsdemo/internal/database"
@@ -67,7 +70,7 @@ func (s *Server) GetFeedback(ctx context.Context, req *pb.IdReq)  (*pb.FeedbackR
 	if err != nil {
 		return nil, twirp.InvalidArgument.Errorf("The survey id [%s] is not a valid uuid", req.Id)
 	}
-	qFeedback, err := database.EntClient.Feedback.Query().Where(feedback.IDEQ(uuid)).WithResponses().WithSurvey().WithPatient().First(ctx)
+	qFeedback, err := database.EntClient.Feedback.Query().Where(feedback.IDEQ(uuid)).WithResponses().WithSurvey(func (q *ent.SurveyQuery) {q.WithPrompts()}).WithPatient().First(ctx)
 	if errors.Is(err, &ent.NotFoundError{}) {
 		return nil, twirp.NotFound.Errorf("The feedback id=[%s] was not found", req.Id)
 	}
@@ -125,10 +128,51 @@ func (s *Server) UpdateAppointmentStatus(ctx context.Context, req *pb.Appointmen
 			log.Printf("Failed to create new Prompt Response for Feedback %s - %v\n", feedbackEnt.ID.String(), err)
 			return nil, twirp.InternalError("Unable to update status")
 		}
-		feedbackResp.Responses = append(feedbackResp.Responses, &pb.FbResponses{Id: resp.ID.String(), ParsedTemplate: v, SurveyIndex: int32(i), Status: "new"})
+		feedbackResp.Responses = append(feedbackResp.Responses, &pb.FbResponse{Id: resp.ID.String(), ParsedTemplate: v, SurveyIndex: int32(i), Status: "new"})
 	} 
 
 	return &feedbackResp, nil
+}
+
+func (s *Server) UpdateFeedbackResponse(ctx context.Context, req *pb.FeedbackPrompt) (*pb.FbResponse, error) {
+	uuid, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, twirp.InvalidArgument.Errorf("The feedback response id [%s] is not a valid uuid", req.Id)
+	}
+	qFeedbackPrompt, err := database.EntClient.PromptResponse.Get(ctx,uuid)
+	if errors.Is(err, &ent.NotFoundError{}) {
+		return nil, twirp.NotFound.Errorf("The feedback response id=[%s] was not found", req.Id)
+	}
+	sSurveyPrompt, err := database.EntClient.PromptResponse.Query().Where(promptresponse.IDEQ(qFeedbackPrompt.ID)).QueryFeedback().QuerySurvey().QueryPrompts().Where(prompt.SortOrder(qFeedbackPrompt.PromptIndex)).Only(ctx)
+	if errors.Is(err, &ent.NotFoundError{}) {
+		return nil, twirp.NotFound.Errorf("The Survey Prompt associated with the feedback response [%s] could not be found", req.Id)
+	}
+	uFeedbackPrompt := qFeedbackPrompt.Update().SetAnsweredTime(time.Now())
+	switch req.Type {
+	case "freeform":
+		uFeedbackPrompt.SetFreeformValue(req.FreeformValue)
+	case "range":
+		if !validRangeInput(sSurveyPrompt,int(req.GetRangeValue())) {
+			return nil, twirp.InvalidArgument.Error("The value passed in for the prompt are not valid for the prompt definition")
+		}
+		uFeedbackPrompt.SetRangeValue(int(req.GetRangeValue()))
+	case "boolean":
+		if !validBoolInput(sSurveyPrompt, req.GetBooleanValue()) {
+			return nil, twirp.InvalidArgument.Error("The value passed in for the prompt are not valid for the prompt definition")
+		}
+		uFeedbackPrompt.SetBoolValue(req.BooleanValue)
+	case "enumeration":
+		uFeedbackPrompt.SetEnumValue(schema.MeasureEnum{Label: req.EnumerationLabelValue, Value: int(req.EnumerationValue)})
+	case "multiflag":
+		uFeedbackPrompt.SetLabelValues(req.FlagValues)
+	}
+	sFeedbackPrompt, err := uFeedbackPrompt.Save(ctx)
+	if err != nil {
+		log.Printf("Unable to save the feedback response for id [%s] - %v\n",req.Id, err)
+		return nil, twirp.InternalError("Unable to save the feedback response data")
+	}
+	
+	return mapDbFeedbackPrompt(sFeedbackPrompt,sSurveyPrompt), nil
 }
 
 func parseTemplate(tmplt string, appt *ent.Appointment) string {
@@ -147,13 +191,31 @@ func parseTemplate(tmplt string, appt *ent.Appointment) string {
 	return buf.String()
 }
 
+func validRangeInput(prompt *ent.Prompt, rangeValue int) bool {
+	if rangeValue >= prompt.ResponseType.LowRange && rangeValue <= prompt.ResponseType.HighRange {
+		return true
+	} else {
+		log.Printf("The range value %d was not between the allowed values of %d and %d\n",rangeValue,  prompt.ResponseType.LowRange, prompt.ResponseType.HighRange)
+	}
+	return false
+}
+
+func validBoolInput(prompt *ent.Prompt, boolValue string) bool {
+	if strings.ToLower(boolValue) == strings.ToLower(prompt.ResponseType.BooleanTrue) || strings.ToLower(boolValue) == strings.ToLower(prompt.ResponseType.BooleanFalse) {
+		return true
+	} else {
+		log.Printf("The boolean value passed %s is not a match for %s/%s\n",boolValue, prompt.ResponseType.BooleanTrue,prompt.ResponseType.BooleanFalse)
+	}
+	return false
+}
+
 func wrapSurvey(ctx context.Context, s *ent.Survey) *pb.SurveyResp {
 	resp := pb.SurveyResp{}
 	resp.Id = s.ID.String()
 	num := pb.SurveyStatus_value[s.Status.String()]
 	resp.Status = pb.SurveyStatus(num)
 	resp.Title = s.Title
-	resp.Description = &s.Description
+	resp.Description = s.Description
 	prompts, err := s.QueryPrompts().All(ctx)
 	if !errors.Is(err,&ent.NotFoundError{}) {
 		resp.Prompts = wrapPrompts(prompts)

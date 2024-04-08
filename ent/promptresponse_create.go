@@ -243,11 +243,11 @@ func (prc *PromptResponseCreate) createSpec() (*PromptResponse, *sqlgraph.Create
 	}
 	if value, ok := prc.mutation.RangeValue(); ok {
 		_spec.SetField(promptresponse.FieldRangeValue, field.TypeInt, value)
-		_node.RangeValue = value
+		_node.RangeValue = &value
 	}
 	if value, ok := prc.mutation.BoolValue(); ok {
 		_spec.SetField(promptresponse.FieldBoolValue, field.TypeString, value)
-		_node.BoolValue = value
+		_node.BoolValue = &value
 	}
 	if value, ok := prc.mutation.EnumValue(); ok {
 		_spec.SetField(promptresponse.FieldEnumValue, field.TypeJSON, value)
@@ -259,11 +259,11 @@ func (prc *PromptResponseCreate) createSpec() (*PromptResponse, *sqlgraph.Create
 	}
 	if value, ok := prc.mutation.FreeformValue(); ok {
 		_spec.SetField(promptresponse.FieldFreeformValue, field.TypeString, value)
-		_node.FreeformValue = value
+		_node.FreeformValue = &value
 	}
 	if value, ok := prc.mutation.AnsweredTime(); ok {
 		_spec.SetField(promptresponse.FieldAnsweredTime, field.TypeTime, value)
-		_node.AnsweredTime = value
+		_node.AnsweredTime = &value
 	}
 	if nodes := prc.mutation.FeedbackIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

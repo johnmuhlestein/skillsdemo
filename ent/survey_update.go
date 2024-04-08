@@ -60,6 +60,12 @@ func (su *SurveyUpdate) SetNillableDescription(s *string) *SurveyUpdate {
 	return su
 }
 
+// ClearDescription clears the value of the "description" field.
+func (su *SurveyUpdate) ClearDescription() *SurveyUpdate {
+	su.mutation.ClearDescription()
+	return su
+}
+
 // SetStatus sets the "status" field.
 func (su *SurveyUpdate) SetStatus(s survey.Status) *SurveyUpdate {
 	su.mutation.SetStatus(s)
@@ -282,6 +288,9 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.Description(); ok {
 		_spec.SetField(survey.FieldDescription, field.TypeString, value)
 	}
+	if su.mutation.DescriptionCleared() {
+		_spec.ClearField(survey.FieldDescription, field.TypeString)
+	}
 	if value, ok := su.mutation.Status(); ok {
 		_spec.SetField(survey.FieldStatus, field.TypeEnum, value)
 	}
@@ -477,6 +486,12 @@ func (suo *SurveyUpdateOne) SetNillableDescription(s *string) *SurveyUpdateOne {
 	if s != nil {
 		suo.SetDescription(*s)
 	}
+	return suo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (suo *SurveyUpdateOne) ClearDescription() *SurveyUpdateOne {
+	suo.mutation.ClearDescription()
 	return suo
 }
 
@@ -731,6 +746,9 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (_node *Survey, err err
 	}
 	if value, ok := suo.mutation.Description(); ok {
 		_spec.SetField(survey.FieldDescription, field.TypeString, value)
+	}
+	if suo.mutation.DescriptionCleared() {
+		_spec.ClearField(survey.FieldDescription, field.TypeString)
 	}
 	if value, ok := suo.mutation.Status(); ok {
 		_spec.SetField(survey.FieldStatus, field.TypeEnum, value)

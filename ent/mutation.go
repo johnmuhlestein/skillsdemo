@@ -3654,7 +3654,7 @@ func (m *PromptResponseMutation) RangeValue() (r int, exists bool) {
 // OldRangeValue returns the old "range_value" field's value of the PromptResponse entity.
 // If the PromptResponse object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PromptResponseMutation) OldRangeValue(ctx context.Context) (v int, err error) {
+func (m *PromptResponseMutation) OldRangeValue(ctx context.Context) (v *int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldRangeValue is only allowed on UpdateOne operations")
 	}
@@ -3723,7 +3723,7 @@ func (m *PromptResponseMutation) BoolValue() (r string, exists bool) {
 // OldBoolValue returns the old "bool_value" field's value of the PromptResponse entity.
 // If the PromptResponse object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PromptResponseMutation) OldBoolValue(ctx context.Context) (v string, err error) {
+func (m *PromptResponseMutation) OldBoolValue(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldBoolValue is only allowed on UpdateOne operations")
 	}
@@ -3886,7 +3886,7 @@ func (m *PromptResponseMutation) FreeformValue() (r string, exists bool) {
 // OldFreeformValue returns the old "freeform_value" field's value of the PromptResponse entity.
 // If the PromptResponse object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PromptResponseMutation) OldFreeformValue(ctx context.Context) (v string, err error) {
+func (m *PromptResponseMutation) OldFreeformValue(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldFreeformValue is only allowed on UpdateOne operations")
 	}
@@ -3935,7 +3935,7 @@ func (m *PromptResponseMutation) AnsweredTime() (r time.Time, exists bool) {
 // OldAnsweredTime returns the old "answered_time" field's value of the PromptResponse entity.
 // If the PromptResponse object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PromptResponseMutation) OldAnsweredTime(ctx context.Context) (v time.Time, err error) {
+func (m *PromptResponseMutation) OldAnsweredTime(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAnsweredTime is only allowed on UpdateOne operations")
 	}
@@ -5004,7 +5004,7 @@ func (m *SurveyMutation) Description() (r string, exists bool) {
 // OldDescription returns the old "description" field's value of the Survey entity.
 // If the Survey object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SurveyMutation) OldDescription(ctx context.Context) (v string, err error) {
+func (m *SurveyMutation) OldDescription(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
 	}
@@ -5018,9 +5018,22 @@ func (m *SurveyMutation) OldDescription(ctx context.Context) (v string, err erro
 	return oldValue.Description, nil
 }
 
+// ClearDescription clears the value of the "description" field.
+func (m *SurveyMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[survey.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *SurveyMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[survey.FieldDescription]
+	return ok
+}
+
 // ResetDescription resets all changes to the "description" field.
 func (m *SurveyMutation) ResetDescription() {
 	m.description = nil
+	delete(m.clearedFields, survey.FieldDescription)
 }
 
 // SetStatus sets the "status" field.
@@ -5076,7 +5089,7 @@ func (m *SurveyMutation) ActiveTime() (r time.Time, exists bool) {
 // OldActiveTime returns the old "active_time" field's value of the Survey entity.
 // If the Survey object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SurveyMutation) OldActiveTime(ctx context.Context) (v time.Time, err error) {
+func (m *SurveyMutation) OldActiveTime(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldActiveTime is only allowed on UpdateOne operations")
 	}
@@ -5125,7 +5138,7 @@ func (m *SurveyMutation) ArchiveTime() (r time.Time, exists bool) {
 // OldArchiveTime returns the old "archive_time" field's value of the Survey entity.
 // If the Survey object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SurveyMutation) OldArchiveTime(ctx context.Context) (v time.Time, err error) {
+func (m *SurveyMutation) OldArchiveTime(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldArchiveTime is only allowed on UpdateOne operations")
 	}
@@ -5480,6 +5493,9 @@ func (m *SurveyMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *SurveyMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(survey.FieldDescription) {
+		fields = append(fields, survey.FieldDescription)
+	}
 	if m.FieldCleared(survey.FieldActiveTime) {
 		fields = append(fields, survey.FieldActiveTime)
 	}
@@ -5500,6 +5516,9 @@ func (m *SurveyMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *SurveyMutation) ClearField(name string) error {
 	switch name {
+	case survey.FieldDescription:
+		m.ClearDescription()
+		return nil
 	case survey.FieldActiveTime:
 		m.ClearActiveTime()
 		return nil

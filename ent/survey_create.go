@@ -36,6 +36,14 @@ func (sc *SurveyCreate) SetDescription(s string) *SurveyCreate {
 	return sc
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (sc *SurveyCreate) SetNillableDescription(s *string) *SurveyCreate {
+	if s != nil {
+		sc.SetDescription(*s)
+	}
+	return sc
+}
+
 // SetStatus sets the "status" field.
 func (sc *SurveyCreate) SetStatus(s survey.Status) *SurveyCreate {
 	sc.mutation.SetStatus(s)
@@ -187,9 +195,6 @@ func (sc *SurveyCreate) check() error {
 	if _, ok := sc.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Survey.title"`)}
 	}
-	if _, ok := sc.mutation.Description(); !ok {
-		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Survey.description"`)}
-	}
 	if _, ok := sc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Survey.status"`)}
 	}
@@ -239,7 +244,7 @@ func (sc *SurveyCreate) createSpec() (*Survey, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := sc.mutation.Description(); ok {
 		_spec.SetField(survey.FieldDescription, field.TypeString, value)
-		_node.Description = value
+		_node.Description = &value
 	}
 	if value, ok := sc.mutation.Status(); ok {
 		_spec.SetField(survey.FieldStatus, field.TypeEnum, value)
@@ -247,11 +252,11 @@ func (sc *SurveyCreate) createSpec() (*Survey, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := sc.mutation.ActiveTime(); ok {
 		_spec.SetField(survey.FieldActiveTime, field.TypeTime, value)
-		_node.ActiveTime = value
+		_node.ActiveTime = &value
 	}
 	if value, ok := sc.mutation.ArchiveTime(); ok {
 		_spec.SetField(survey.FieldArchiveTime, field.TypeTime, value)
-		_node.ArchiveTime = value
+		_node.ArchiveTime = &value
 	}
 	if nodes := sc.mutation.PromptsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

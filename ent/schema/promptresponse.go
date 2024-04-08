@@ -18,12 +18,12 @@ func (PromptResponse) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.String("parsed_template"),
 		field.Int("prompt_index").Positive(),
-		field.Int("range_value").Optional(),
-		field.String("bool_value").Optional(),
+		field.Int("range_value").Optional().Nillable(),
+		field.String("bool_value").Optional().Nillable(),
 		field.JSON("enum_value", MeasureEnum{}).Optional(),
 		field.JSON("label_values", []string{}).Optional(),
-		field.String("freeform_value").Optional(),
-		field.Time("answered_time").Optional(),
+		field.String("freeform_value").Optional().Nillable(),
+		field.Time("answered_time").Optional().Nillable(),
 	}
 }
 

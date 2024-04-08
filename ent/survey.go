@@ -21,13 +21,13 @@ type Survey struct {
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Description holds the value of the "description" field.
-	Description string `json:"description,omitempty"`
+	Description *string `json:"description,omitempty"`
 	// Status holds the value of the "status" field.
 	Status survey.Status `json:"status,omitempty"`
 	// ActiveTime holds the value of the "active_time" field.
-	ActiveTime time.Time `json:"active_time,omitempty"`
+	ActiveTime *time.Time `json:"active_time,omitempty"`
 	// ArchiveTime holds the value of the "archive_time" field.
-	ArchiveTime time.Time `json:"archive_time,omitempty"`
+	ArchiveTime *time.Time `json:"archive_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuery when eager-loading is set.
 	Edges        SurveyEdges `json:"edges"`
@@ -116,7 +116,8 @@ func (s *Survey) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
-				s.Description = value.String
+				s.Description = new(string)
+				*s.Description = value.String
 			}
 		case survey.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -128,13 +129,15 @@ func (s *Survey) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field active_time", values[i])
 			} else if value.Valid {
-				s.ActiveTime = value.Time
+				s.ActiveTime = new(time.Time)
+				*s.ActiveTime = value.Time
 			}
 		case survey.FieldArchiveTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field archive_time", values[i])
 			} else if value.Valid {
-				s.ArchiveTime = value.Time
+				s.ArchiveTime = new(time.Time)
+				*s.ArchiveTime = value.Time
 			}
 		default:
 			s.selectValues.Set(columns[i], values[i])
@@ -190,17 +193,23 @@ func (s *Survey) String() string {
 	builder.WriteString("title=")
 	builder.WriteString(s.Title)
 	builder.WriteString(", ")
-	builder.WriteString("description=")
-	builder.WriteString(s.Description)
+	if v := s.Description; v != nil {
+		builder.WriteString("description=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", s.Status))
 	builder.WriteString(", ")
-	builder.WriteString("active_time=")
-	builder.WriteString(s.ActiveTime.Format(time.ANSIC))
+	if v := s.ActiveTime; v != nil {
+		builder.WriteString("active_time=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
-	builder.WriteString("archive_time=")
-	builder.WriteString(s.ArchiveTime.Format(time.ANSIC))
+	if v := s.ArchiveTime; v != nil {
+		builder.WriteString("archive_time=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

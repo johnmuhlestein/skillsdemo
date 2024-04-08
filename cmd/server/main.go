@@ -4,8 +4,10 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"skillsdemo/ent/migrate"
 	"skillsdemo/internal/database"
+	"skillsdemo/internal/hooks"
 	"skillsdemo/internal/surveyserver"
 	"skillsdemo/rpc/survey"
 
@@ -20,9 +22,9 @@ func main() {
         log.Fatal(err)
     }
 	log.Println("Successfully deployed database schema")
-
+	hook := hooks.LogginHooks(os.Stderr)
 	server := &surveyserver.Server{}
-	twirpHandler := survey.NewSurveyServer(server)
+	twirpHandler := survey.NewSurveyServer(server,hook)
 
 	http.ListenAndServe(":8080", twirpHandler)
 }

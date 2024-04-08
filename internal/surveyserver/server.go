@@ -201,7 +201,7 @@ func validRangeInput(prompt *ent.Prompt, rangeValue int) bool {
 }
 
 func validBoolInput(prompt *ent.Prompt, boolValue string) bool {
-	if strings.ToLower(boolValue) == strings.ToLower(prompt.ResponseType.BooleanTrue) || strings.ToLower(boolValue) == strings.ToLower(prompt.ResponseType.BooleanFalse) {
+	if strings.EqualFold(boolValue,prompt.ResponseType.BooleanTrue) || strings.EqualFold(boolValue,prompt.ResponseType.BooleanFalse) {
 		return true
 	} else {
 		log.Printf("The boolean value passed %s is not a match for %s/%s\n",boolValue, prompt.ResponseType.BooleanTrue,prompt.ResponseType.BooleanFalse)
